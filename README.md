@@ -4,6 +4,25 @@
 
 久寒支付监控系统是一个集成了支付宝和微信支付监控的综合解决方案，采用GPL 3.0开源协议。该系统通过实时监控支付状态和余额变化，为商户提供及时的支付通知和管理功能。
 
+## 界面预览
+
+<table>
+  <tr>
+    <td align="center"><b>管理后台主页</b></td>
+    <td align="center"><b>收银台页面</b></td>
+  </tr>
+  <tr>
+    <td><img src="./assets/主页.png" alt="管理后台主页" width="100%"/></td>
+    <td><img src="./assets/收银台.png" alt="收银台页面" width="100%"/></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><b>订单管理</b></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="./assets/订单管理.png" alt="订单管理" width="80%"/></td>
+  </tr>
+</table>
+
 ## 项目目的
 
 - 解决个人资质限制问题，支持个人用户接入支付宝和微信支付，无需资质认证
