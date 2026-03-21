@@ -1,0 +1,49 @@
+[Global]
+configs_advanced=true
+shortcut.desktop=false
+shortcut.startMenu=false
+shortcut.startup=false
+ui.theme=Default Light
+ui.fontFamily=Microsoft YaHei
+ui.dataFontFamily=Microsoft YaHei
+ui.scale=1
+ui.disableEffect=false
+ui.imgShowOverlay=true
+window.startupInvisible=false
+window.isMainWindowTop=false
+window.barIsLock=false
+window.closeWin2Hide=true
+window.hideTrayIcon=false
+window.simpleNotificationType=inside
+window.geometry="927,94,800,500"
+window.messageMemory=@Variant(\0\0\0\x7f\0\0\0\tQJSValue\0\0\0\0\0\0\0\0\t\0\0\0\x1\0\0\0\n\0\0\0 \0g\0l\0o\0\x62\0\x61\0l\0\x43\0o\0n\0\x66\0i\0g\0s\0K\0\x65\0y)
+window.doubleLayout=@Variant(\0\0\0\x7f\0\0\0\tQJSValue\0\0\0\0\0\0\0\0\b\0\0\0\0)
+screenshot.hideWindow=true
+screenshot.hideWindowTime=0.2
+server.enable=true
+server.host=0.0.0.0
+server.port=1224
+logs.saveLogLevel=ERROR
+ocr.api=win7_x64_PaddleOCR-json
+ocr.win7_x64_PaddleOCR-json.cpu_threads=4
+ocr.win7_x64_PaddleOCR-json.enable_mkldnn=true
+ocr.win7_x64_PaddleOCR-json.ram_max=8112
+ocr.win7_x64_PaddleOCR-json.ram_time=60
+
+[TabPageManager]
+refresh=true
+openPageList=GlobalConfigsPage/GlobalConfigsPage.qml, ScreenshotOCR/ScreenshotOCR.qml
+showPageIndex=1
+
+[ScreenshotOCR]
+configs_advanced=false
+ocr.cls=false
+ocr.language=models/config_chinese.txt
+ocr.limit_side_len=960
+tbpu.parser=single_line
+hotkey.screenshot=win+alt+c
+hotkey.paste=win+alt+v
+hotkey.reScreenshot=
+action.copy=false
+action.popMainWindow=true
+other.simpleNotificationType=default
