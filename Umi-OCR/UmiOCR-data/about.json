@@ -1,0 +1,149 @@
+{
+    "name": "Umi-OCR",
+    "version": {
+        "major": 2,
+        "minor": 1,
+        "patch": 5,
+        "prerelease": "",
+        "prereleaseNumber": 0,
+        "string": "自动生成"
+    },
+    "fullname": "自动生成",
+    "app": "自动生成, home, path, platform, python, cpu, ram",
+    "url": {
+        "home": "https://github.com/hiroi-sora/Umi-OCR",
+        "plugins": "https://github.com/hiroi-sora/Umi-OCR_plugins",
+        "issue": "https://github.com/hiroi-sora/Umi-OCR/issues",
+        "newIssue": "https://github.com/hiroi-sora/Umi-OCR/issues/new/choose"
+    },
+    "license": {
+        "type": "MIT",
+        "url": "https://github.com/hiroi-sora/Umi-OCR/blob/main/LICENSE"
+    },
+    "authors": [
+        {
+            "name": "hiroi-sora",
+            "url": "https://github.com/hiroi-sora"
+        }
+    ],
+    "localization": [
+        {
+            "language": "English",
+            "translators": [
+                {
+                    "name": "Qingzheng Gao",
+                    "url": "https://github.com/QZGao"
+                },
+                {
+                    "name": "bob",
+                    "url": "https://hosted.weblate.org/user/q021"
+                },
+                {
+                    "name": "Eric Guo",
+                    "url": "https://hosted.weblate.org/user/qwedc001"
+                },
+                {
+                    "name": "Weng, Chia-Ling",
+                    "url": "https://hosted.weblate.org/user/ChiaLingWeng"
+                },
+                {
+                    "name": "linzow",
+                    "url": "https://hosted.weblate.org/user/linzow"
+                },
+                {
+                    "name": "steven0081",
+                    "url": "https://hosted.weblate.org/user/steven0081"
+                },
+                {
+                    "name": "Marcos i",
+                    "url": "https://hosted.weblate.org/user/ultramarkorj9"
+                },
+                {
+                    "name": "Brandon Cagle",
+                    "url": "https://hosted.weblate.org/user/random4t4x14"
+                }
+            ]
+        },
+        {
+            "language": "繁體中文",
+            "translators": [
+                {
+                    "name": "Qingzheng Gao",
+                    "url": "https://github.com/QZGao"
+                },
+                {
+                    "name": "plum7x",
+                    "url": "https://hosted.weblate.org/user/plum7x"
+                },
+                {
+                    "name": "Weng, Chia-Ling",
+                    "url": "https://hosted.weblate.org/user/ChiaLingWeng"
+                },
+                {
+                    "name": "bob",
+                    "url": "https://hosted.weblate.org/user/q021"
+                },
+                {
+                    "name": "linzow",
+                    "url": "https://hosted.weblate.org/user/linzow"
+                },
+                {
+                    "name": "hugoalh",
+                    "url": "https://hosted.weblate.org/user/hugoalh"
+                },
+                {
+                    "name": "Anarkiisto",
+                    "url": "https://hosted.weblate.org/user/Anarkiisto"
+                }
+            ]
+        },
+        {
+            "language": "日本語",
+            "translators": [
+                {
+                    "name": "bob",
+                    "url": "https://hosted.weblate.org/user/q021"
+                },
+                {
+                    "name": "ドコモ光",
+                    "url": "https://hosted.weblate.org/user/umren190402"
+                }
+            ]
+        },
+        {
+            "language": "Português",
+            "translators": [
+                {
+                    "name": "杨鹏",
+                    "url": "https://hosted.weblate.org/user/ypf"
+                },
+                {
+                    "name": "Marcos i",
+                    "url": "https://hosted.weblate.org/user/ultramarkorj9"
+                }
+            ]
+        },
+        {
+            "language": "Русский",
+            "translators": [
+                {
+                    "name": "Вячеслав Анатольевич Малышев",
+                    "url": "https://hosted.weblate.org/user/1969"
+                },
+                {
+                    "name": "Muhammadyusuf Kurbonov",
+                    "url": "https://hosted.weblate.org/user/muhammadyusuf.kurbonov2002"
+                }
+            ]
+        },
+        {
+            "language": "தமிழ்",
+            "translators": [
+                {
+                    "name": "தமிழ்நேரம்",
+                    "url": "https://hosted.weblate.org/user/TamilNeram/"
+                }
+            ]
+        }
+    ]
+}
