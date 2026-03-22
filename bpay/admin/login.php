@@ -10,6 +10,15 @@ $jwtSecret = 'XANOon14r3CuIvJNS8pQ5MkAZJFoGvUDrtF66aj1tjA8ocDlw02oNkkYTKduJnjv8K
 
 $error = '';
 
+// 处理主题切换（必须在任何输出之前）
+if (isset($_GET['toggle_theme'])) {
+    $currentTheme = $_COOKIE['bpay_theme'] ?? 'dark';
+    $newTheme = $currentTheme === 'dark' ? 'light' : 'dark';
+    setcookie('bpay_theme', $newTheme, time() + 86400 * 365, '/');
+    header('Location: login.php');
+    exit;
+}
+
 // 检查是否已登录
 if (isset($_COOKIE['bpay_token'])) {
     $token = $_COOKIE['bpay_token'];
@@ -305,13 +314,3 @@ function verifyJWT($token, $secret) {
     </div>
 </body>
 </html>
-<?php
-// 处理主题切换
-if (isset($_GET['toggle_theme'])) {
-    $currentTheme = $_COOKIE['bpay_theme'] ?? 'dark';
-    $newTheme = $currentTheme === 'dark' ? 'light' : 'dark';
-    setcookie('bpay_theme', $newTheme, time() + 86400 * 365, '/');
-    header('Location: login.php');
-    exit;
-}
-?>

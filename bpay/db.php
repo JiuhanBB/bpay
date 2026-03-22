@@ -233,6 +233,17 @@ class BPayDB {
     }
     
     /**
+     * 恢复已取消订单（更新创建时间为当前时间）
+     */
+    public function restoreCancelledOrder($tradeNo) {
+        $stmt = $this->db->prepare("UPDATE orders SET status = 0, create_time = :create_time, pay_time = 0 WHERE trade_no = :trade_no");
+        return $stmt->execute([
+            ':create_time' => time(),
+            ':trade_no' => $tradeNo
+        ]);
+    }
+    
+    /**
      * 获取订单列表
      */
     public function getOrderList($limit = 50) {
@@ -311,5 +322,110 @@ class BPayDB {
         }
         
         return $money;
+    }
+    
+    /**
+     * 搜索订单（支持分页）
+     */
+    public function searchOrders($keyword = '', $status = '', $type = '', $startTime = '', $endTime = '', $limit = 20, $offset = 0) {
+        $where = [];
+        $params = [];
+        
+        if (!empty($keyword)) {
+            $where[] = "(trade_no LIKE :keyword OR out_trade_no LIKE :keyword OR name LIKE :keyword)";
+            $params[':keyword'] = '%' . $keyword . '%';
+        }
+        
+        if ($status !== '' && $status !== 'all') {
+            $where[] = "status = :status";
+            $params[':status'] = intval($status);
+        }
+        
+        if (!empty($type) && $type !== 'all') {
+            $where[] = "type = :type";
+            $params[':type'] = $type;
+        }
+        
+        if (!empty($startTime)) {
+            $where[] = "create_time >= :start_time";
+            $params[':start_time'] = strtotime($startTime);
+        }
+        
+        if (!empty($endTime)) {
+            $where[] = "create_time <= :end_time";
+            $params[':end_time'] = strtotime($endTime . ' 23:59:59');
+        }
+        
+        $sql = "SELECT * FROM orders";
+        if (!empty($where)) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+        $sql .= " ORDER BY create_time DESC LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * 获取搜索订单总数
+     */
+    public function getSearchOrderCount($keyword = '', $status = '', $type = '', $startTime = '', $endTime = '') {
+        $where = [];
+        $params = [];
+        
+        if (!empty($keyword)) {
+            $where[] = "(trade_no LIKE :keyword OR out_trade_no LIKE :keyword OR name LIKE :keyword)";
+            $params[':keyword'] = '%' . $keyword . '%';
+        }
+        
+        if ($status !== '' && $status !== 'all') {
+            $where[] = "status = :status";
+            $params[':status'] = intval($status);
+        }
+        
+        if (!empty($type) && $type !== 'all') {
+            $where[] = "type = :type";
+            $params[':type'] = $type;
+        }
+        
+        if (!empty($startTime)) {
+            $where[] = "create_time >= :start_time";
+            $params[':start_time'] = strtotime($startTime);
+        }
+        
+        if (!empty($endTime)) {
+            $where[] = "create_time <= :end_time";
+            $params[':end_time'] = strtotime($endTime . ' 23:59:59');
+        }
+        
+        $sql = "SELECT COUNT(*) FROM orders";
+        if (!empty($where)) {
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+        
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+    
+    /**
+     * 根据时间范围获取订单（用于导出）
+     */
+    public function getOrdersByTimeRange($startTime, $endTime) {
+        $stmt = $this->db->prepare("SELECT * FROM orders WHERE create_time >= :start_time AND create_time <= :end_time ORDER BY create_time DESC");
+        $stmt->execute([
+            ':start_time' => $startTime,
+            ':end_time' => $endTime
+        ]);
+        return $stmt->fetchAll();
     }
 }
