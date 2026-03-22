@@ -25,7 +25,7 @@ if (!$order) {
     exit;
 }
 
-// 如果订单已支付，直接返回
+// 如果订单已支付或已取消，直接返回
 if ($order['status'] == 1) {
     echo json_encode([
         'code' => 'success',
@@ -34,6 +34,18 @@ if ($order['status'] == 1) {
         'out_trade_no' => $order['out_trade_no'],
         'money' => $order['money'],
         'pay_time' => $order['pay_time']
+    ]);
+    exit;
+}
+
+// 如果订单已取消
+if ($order['status'] == 2) {
+    echo json_encode([
+        'code' => 'success',
+        'status' => 2,
+        'trade_no' => $order['trade_no'],
+        'out_trade_no' => $order['out_trade_no'],
+        'money' => $order['money']
     ]);
     exit;
 }

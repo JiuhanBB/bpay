@@ -19,6 +19,7 @@ if (!$order) {
     die('订单不存在：' . htmlspecialchars($tradeNo));
 }
 
+// 检查订单是否已支付
 if ($order['status'] == 1) {
     if (strpos($order['trade_no'], 'TEST') === 0) {
         header('Location: test_success.php?trade_no=' . $order['trade_no']);
@@ -26,6 +27,17 @@ if ($order['status'] == 1) {
         header('Location: ' . $order['return_url']);
     }
     exit;
+}
+
+// 检查订单是否已取消
+if ($order['status'] == 2) {
+    die('订单已过期，请重新下单');
+}
+
+// 检查订单是否超时
+if ($db->isOrderExpired($order)) {
+    $db->cancelOrder($tradeNo);
+    die('订单已过期，请重新下单');
 }
 
 $payTypeName = $order['type'] == 'alipay' ? '支付宝' : '微信支付';
@@ -84,6 +96,10 @@ if ($order['type'] == 'alipay') {
 }
 
 $hasQrcode = !empty($qrCodeUrl);
+
+// 计算剩余时间
+$expireTime = $order['create_time'] + 300;
+$remainingSeconds = $expireTime - time();
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -100,7 +116,7 @@ $hasQrcode = !empty($qrCodeUrl);
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f5f5;
             min-height: 100vh;
             padding: 10px;
             display: flex;
@@ -109,10 +125,10 @@ $hasQrcode = !empty($qrCodeUrl);
         }
         .pay-container {
             background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 420px;
+            max-width: 400px;
             padding: 20px;
             margin-top: 10px;
         }
@@ -134,10 +150,10 @@ $hasQrcode = !empty($qrCodeUrl);
         .pay-type {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 6px 16px;
+            gap: 6px;
+            padding: 8px 20px;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 500;
         }
         .pay-type.alipay {
@@ -148,9 +164,22 @@ $hasQrcode = !empty($qrCodeUrl);
             background: #07c160;
             color: #fff;
         }
+        .countdown {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #ff4d4f;
+            font-weight: 500;
+        }
+        .countdown.expired {
+            color: #999;
+        }
         .order-info {
             background: #f8f9fa;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 12px;
             margin-bottom: 15px;
         }
@@ -178,8 +207,8 @@ $hasQrcode = !empty($qrCodeUrl);
             text-align: center;
             margin-bottom: 20px;
             padding: 15px;
-            background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
-            border-radius: 10px;
+            background: #fff5f5;
+            border-radius: 8px;
             border: 1px solid #ffe0e0;
         }
         .order-amount-label {
@@ -197,8 +226,8 @@ $hasQrcode = !empty($qrCodeUrl);
             color: #ff6b6b;
             margin-top: 8px;
             padding: 8px;
-            background: #fff2f0;
-            border-radius: 6px;
+            background: #fff;
+            border-radius: 4px;
             line-height: 1.4;
         }
         .qrcode-container {
@@ -210,7 +239,7 @@ $hasQrcode = !empty($qrCodeUrl);
             max-width: 220px;
             aspect-ratio: 1;
             border: 2px solid #eee;
-            border-radius: 12px;
+            border-radius: 8px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -231,9 +260,9 @@ $hasQrcode = !empty($qrCodeUrl);
             padding: 20px;
         }
         .pay-tips {
-            background: #fff7e6;
-            border: 1px solid #ffd591;
-            border-radius: 10px;
+            background: #fffbe6;
+            border: 1px solid #ffe58f;
+            border-radius: 8px;
             padding: 12px;
             font-size: 12px;
             color: #666;
@@ -254,10 +283,10 @@ $hasQrcode = !empty($qrCodeUrl);
         }
         .loading {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
+            border-top: 2px solid #52c41a;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-left: 8px;
@@ -269,7 +298,7 @@ $hasQrcode = !empty($qrCodeUrl);
         }
         .status-checking {
             text-align: center;
-            color: #666;
+            color: #52c41a;
             font-size: 13px;
             padding: 12px;
             background: #f6ffed;
@@ -284,21 +313,19 @@ $hasQrcode = !empty($qrCodeUrl);
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 14px 28px;
-            background: linear-gradient(135deg, #1677ff 0%, #0056b3 100%);
+            padding: 12px 24px;
+            background: #1677ff;
             color: #fff;
             text-decoration: none;
-            border-radius: 25px;
-            font-size: 15px;
+            border-radius: 20px;
+            font-size: 14px;
             font-weight: 500;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(22, 119, 255, 0.3);
             width: 100%;
-            max-width: 250px;
+            max-width: 220px;
         }
         .btn-alipay:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(22, 119, 255, 0.4);
+            background: #0056b3;
         }
         .error-message {
             text-align: center;
@@ -309,22 +336,6 @@ $hasQrcode = !empty($qrCodeUrl);
             font-size: 48px;
             display: block;
             margin-bottom: 16px;
-        }
-        .method-tag {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            margin-left: 5px;
-            font-weight: normal;
-        }
-        .method-tag.face {
-            background: rgba(255,255,255,0.3);
-            color: #fff;
-        }
-        .method-tag.qrcode {
-            background: rgba(255,255,255,0.3);
-            color: #fff;
         }
 
         /* 响应式优化 */
@@ -372,12 +383,11 @@ $hasQrcode = !empty($qrCodeUrl);
             <span class="pay-type <?php echo $order['type']; ?>">
                 <i class="ri-<?php echo $order['type'] == 'alipay' ? 'alipay' : 'wechat-pay'; ?>-line"></i>
                 <?php echo $payTypeName; ?>
-                <?php if ($payMethod == 'face'): ?>
-                <span class="method-tag face">当面付</span>
-                <?php elseif ($payMethod == 'qrcode'): ?>
-                <span class="method-tag qrcode">收款码</span>
-                <?php endif; ?>
             </span>
+            <div class="countdown" id="countdown">
+                <i class="ri-time-line"></i>
+                <span>剩余时间：<span id="timer">05:00</span></span>
+            </div>
         </div>
 
         <div class="order-info">
@@ -434,9 +444,7 @@ $hasQrcode = !empty($qrCodeUrl);
             <p>1. 请使用<?php echo $payTypeName; ?>扫描上方二维码</p>
             <p>2. 请确保支付金额与订单金额一致</p>
             <p>3. 支付完成后请等待页面自动跳转</p>
-            <?php if ($payMethod == 'face'): ?>
-            <p style="margin-top: 8px; color: #1677ff;"><i class="ri-information-line"></i> 使用支付宝当面付，支付状态实时同步</p>
-            <?php endif; ?>
+            <p>4. 订单有效期为5分钟，超时请重新下单</p>
         </div>
 
         <div class="status-checking">
@@ -450,7 +458,34 @@ $hasQrcode = !empty($qrCodeUrl);
         const tradeNo = '<?php echo $tradeNo; ?>';
         const returnUrl = '<?php echo htmlspecialchars($order['return_url']); ?>';
         const isTestOrder = tradeNo.startsWith('TEST');
+        let remainingSeconds = <?php echo $remainingSeconds; ?>;
 
+        // 倒计时
+        function updateCountdown() {
+            const timerEl = document.getElementById('timer');
+            const countdownEl = document.getElementById('countdown');
+            
+            if (remainingSeconds <= 0) {
+                timerEl.textContent = '00:00';
+                countdownEl.classList.add('expired');
+                countdownEl.innerHTML = '<i class="ri-time-line"></i><span>订单已过期</span>';
+                setTimeout(() => {
+                    alert('订单已过期，请重新下单');
+                    location.reload();
+                }, 1000);
+                return;
+            }
+            
+            const minutes = Math.floor(remainingSeconds / 60);
+            const seconds = remainingSeconds % 60;
+            timerEl.textContent = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+            remainingSeconds--;
+        }
+        
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // 检查支付状态
         function checkStatus() {
             fetch('api/query_order.php?trade_no=' + tradeNo)
                 .then(res => res.json())
@@ -461,6 +496,9 @@ $hasQrcode = !empty($qrCodeUrl);
                         } else {
                             window.location.href = returnUrl;
                         }
+                    } else if (data.status === 2) {
+                        alert('订单已过期，请重新下单');
+                        location.reload();
                     }
                 })
                 .catch(err => console.error('查询失败:', err));
