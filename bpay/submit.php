@@ -84,13 +84,14 @@ $tradeNo = $db->generateTradeNo();
 $baseMoney = floatval($params['money']);
 $finalMoney = $db->getUniqueMoney($baseMoney);
 
-// 创建订单
+// 创建订单（保存原始金额和微调后的金额）
 $orderData = [
     'trade_no' => $tradeNo,
     'out_trade_no' => $params['out_trade_no'],
     'merchant_id' => $params['pid'],
     'name' => $params['name'],
-    'money' => $finalMoney,
+    'money' => $finalMoney,                    // 微调后的金额（用于支付）
+    'original_money' => $params['money'],      // 商户原始金额（用于通知）
     'type' => $params['type'],
     'notify_url' => $params['notify_url'],
     'return_url' => $params['return_url'],

@@ -143,14 +143,16 @@ function generateSign($params, $key) {
 function sendNotify($order, $db, $logger) {
     $merchantKey = $db->getConfig('merchant_key');
     
-    // 构建通知参数
+    // 构建通知参数（使用原始金额，如果不存在则使用微调金额，兼容旧订单）
+    $notifyMoney = $order['original_money'] ?? $order['money'];
+    
     $params = [
         'pid' => $order['merchant_id'],
         'trade_no' => $order['trade_no'],
         'out_trade_no' => $order['out_trade_no'],
         'type' => $order['type'],
         'name' => $order['name'],
-        'money' => $order['money'],
+        'money' => $notifyMoney,  // 使用商户原始金额
         'trade_status' => 'TRADE_SUCCESS',
         'sign_type' => 'MD5'
     ];

@@ -45,6 +45,7 @@ class BPayDB {
             merchant_id VARCHAR(32),
             name VARCHAR(255),
             money DECIMAL(10,2),
+            original_money DECIMAL(10,2),
             type VARCHAR(20),
             notify_url VARCHAR(500),
             return_url VARCHAR(500),
@@ -112,9 +113,9 @@ class BPayDB {
      */
     public function createOrder($data) {
         $stmt = $this->db->prepare("INSERT INTO orders 
-            (trade_no, out_trade_no, merchant_id, name, money, type, notify_url, return_url, status, create_time) 
+            (trade_no, out_trade_no, merchant_id, name, money, original_money, type, notify_url, return_url, status, create_time) 
             VALUES 
-            (:trade_no, :out_trade_no, :merchant_id, :name, :money, :type, :notify_url, :return_url, :status, :create_time)");
+            (:trade_no, :out_trade_no, :merchant_id, :name, :money, :original_money, :type, :notify_url, :return_url, :status, :create_time)");
         
         return $stmt->execute([
             ':trade_no' => $data['trade_no'],
@@ -122,6 +123,7 @@ class BPayDB {
             ':merchant_id' => $data['merchant_id'],
             ':name' => $data['name'],
             ':money' => $data['money'],
+            ':original_money' => $data['original_money'] ?? $data['money'],
             ':type' => $data['type'],
             ':notify_url' => $data['notify_url'],
             ':return_url' => $data['return_url'],

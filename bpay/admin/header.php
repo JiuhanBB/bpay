@@ -1072,7 +1072,103 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
         [data-theme="light"] .form-control:focus {
             box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
         }
+        
+        /* 代码高亮样式 */
+        .code-block {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            position: relative;
+        }
+        
+        [data-theme="light"] .code-block {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        
+        /* 代码高亮颜色 */
+        .code-keyword { color: #ff7b72; }      /* 关键字 */
+        .code-string { color: #a5d6ff; }       /* 字符串 */
+        .code-comment { color: #8b949e; }      /* 注释 */
+        .code-function { color: #d2a8ff; }     /* 函数名 */
+        .code-variable { color: #79c0ff; }     /* 变量 */
+        .code-number { color: #79c0ff; }       /* 数字 */
+        .code-operator { color: #ff7b72; }     /* 运算符 */
+        
+        [data-theme="light"] .code-keyword { color: #d73a49; }
+        [data-theme="light"] .code-string { color: #032f62; }
+        [data-theme="light"] .code-comment { color: #6a737d; }
+        [data-theme="light"] .code-function { color: #6f42c1; }
+        [data-theme="light"] .code-variable { color: #005cc5; }
+        [data-theme="light"] .code-number { color: #005cc5; }
+        [data-theme="light"] .code-operator { color: #d73a49; }
+        
+        /* 代码框头部 */
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        [data-theme="light"] .code-header {
+            background: #f1f3f4;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-copy {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+        
+        .code-copy:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+        
+        .code-block-wrapper {
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        
+        .code-block-wrapper .code-block {
+            border-radius: 0 0 12px 12px;
+        }
     </style>
+    
+    <!-- 代码高亮库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
 </head>
 <body>
 <button class="mobile-menu-btn" onclick="toggleSidebar()">
