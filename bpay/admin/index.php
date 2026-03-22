@@ -985,6 +985,23 @@ ${log.response.body ? JSON.stringify(log.response.body, null, 2) : '(空)'}</div
             });
         }
     });
+
+    // 侧边栏切换
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+
+    // 点击导航项后自动关闭侧边栏（移动端）
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        });
+    });
 </script>
 
 </body>

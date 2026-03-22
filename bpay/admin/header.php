@@ -1,6 +1,6 @@
 <?php
 /**
- * BPay 管理后台头部 - 包含主题切换
+ * BPay 管理后台头部 - 包含主题切换 + 响应式布局
  */
 
 // 获取当前主题
@@ -10,7 +10,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
 <html lang="zh-CN" data-theme="<?php echo $theme; ?>">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BPay 管理后台</title>
     <link rel="stylesheet" href="https://unpkg.com/remixicon@3.5.0/fonts/remixicon.css">
     <style>
@@ -62,6 +62,26 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             transition: background 0.3s, color 0.3s;
         }
         
+        /* 移动端菜单按钮 */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
         /* 侧边栏 */
         .sidebar {
             position: fixed;
@@ -74,7 +94,22 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             z-index: 1000;
             display: flex;
             flex-direction: column;
-            transition: all 0.3s;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .sidebar-overlay.active {
+            display: block;
         }
         
         .sidebar-header {
@@ -158,6 +193,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
         
         .nav-item i {
             font-size: 20px;
+            min-width: 20px;
         }
         
         .sidebar-footer {
@@ -212,7 +248,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
         /* 统计卡片 */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 24px;
             margin-bottom: 40px;
         }
@@ -264,6 +300,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             border-radius: 20px;
             padding: 32px;
             margin-bottom: 24px;
+            overflow-x: auto;
         }
         
         .card-header {
@@ -271,6 +308,8 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             align-items: center;
             justify-content: space-between;
             margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .card-title {
@@ -324,6 +363,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
         .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             padding: 16px 28px;
             background: var(--text-primary);
@@ -366,6 +406,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
         .data-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
         
         .data-table th {
@@ -397,6 +438,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
+            white-space: nowrap;
         }
         
         .status-badge.pending {
@@ -431,6 +473,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             justify-content: center;
             gap: 8px;
             margin-top: 32px;
+            flex-wrap: wrap;
         }
         
         .page-btn {
@@ -509,6 +552,8 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             align-items: center;
             justify-content: space-between;
             margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .log-time {
@@ -529,6 +574,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             gap: 16px;
             font-size: 13px;
             color: var(--text-muted);
+            flex-wrap: wrap;
         }
         
         /* 模态框 */
@@ -699,68 +745,10 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             color: var(--text-secondary);
         }
         
-        /* 响应式 */
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 220px;
-            }
-            .main-content {
-                margin-left: 220px;
-                padding: 30px;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 767px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                flex-direction: row;
-                padding: 15px;
-            }
-            .sidebar-header {
-                padding: 0;
-                border: none;
-            }
-            .sidebar-header h1 span,
-            .nav-item span,
-            .nav-section-title {
-                display: none;
-            }
-            .sidebar-nav,
-            .sidebar-footer {
-                display: none;
-            }
-            .main-content {
-                margin-left: 0;
-                padding: 20px;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .filter-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .modal-content {
-                max-height: 95vh;
-                margin: 10px;
-            }
-        }
-        
-        @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .main-content {
-                padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            }
-        }
-        
         /* 收款码上传 */
         .upload-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 24px;
         }
         
@@ -768,7 +756,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             background: var(--bg-secondary);
             border: 2px dashed var(--border-color);
             border-radius: 20px;
-            padding: 40px;
+            padding: 40px 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -797,7 +785,7 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
         }
         
         .upload-preview {
-            max-width: 200px;
+            max-width: 100%;
             max-height: 200px;
             margin: 0 auto 20px;
             border-radius: 12px;
@@ -812,6 +800,160 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
             color: var(--text-muted);
             font-size: 14px;
         }
+        
+        /* 响应式 - 平板 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 220px;
+            }
+            .main-content {
+                margin-left: 220px;
+                padding: 30px;
+            }
+        }
+        
+        /* 响应式 - 手机 */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+            
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 70px 15px 20px;
+            }
+            
+            .page-header {
+                margin-bottom: 24px;
+            }
+            
+            .page-header h2 {
+                font-size: 24px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 24px;
+            }
+            
+            .stat-card {
+                padding: 20px;
+            }
+            
+            .stat-value {
+                font-size: 28px;
+            }
+            
+            .content-card {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .data-table {
+                font-size: 13px;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 12px 8px;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-select {
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                padding: 14px 20px;
+            }
+            
+            .modal-content {
+                max-height: 95vh;
+                margin: 10px;
+            }
+            
+            .modal-header,
+            .modal-body {
+                padding: 16px;
+            }
+            
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .upload-card {
+                padding: 30px 20px;
+            }
+            
+            .log-card {
+                padding: 16px;
+            }
+            
+            .log-meta {
+                gap: 10px;
+            }
+            
+            .pagination {
+                gap: 5px;
+            }
+            
+            .page-btn {
+                min-width: 38px;
+                height: 38px;
+                padding: 0 12px;
+                font-size: 13px;
+            }
+        }
+        
+        /* 小屏幕手机 */
+        @media (max-width: 375px) {
+            .main-content {
+                padding: 65px 10px 15px;
+            }
+            
+            .page-header h2 {
+                font-size: 20px;
+            }
+            
+            .stat-value {
+                font-size: 24px;
+            }
+            
+            .content-card {
+                padding: 15px;
+            }
+        }
+        
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .main-content {
+                padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            }
+        }
     </style>
 </head>
 <body>
+<button class="mobile-menu-btn" onclick="toggleSidebar()">
+    <i class="ri-menu-line"></i>
+</button>
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>

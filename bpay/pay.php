@@ -89,8 +89,9 @@ $hasQrcode = !empty($qrCodeUrl);
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BPay - <?php echo htmlspecialchars($payTypeName); ?>支付</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -99,33 +100,42 @@ $hasQrcode = !empty($qrCodeUrl);
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            align-items: flex-start;
         }
         .pay-container {
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            max-width: 400px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             width: 100%;
-            padding: 30px;
+            max-width: 420px;
+            padding: 20px;
+            margin-top: 10px;
         }
         .pay-header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
         }
         .pay-header h1 {
-            font-size: 24px;
+            font-size: 20px;
             color: #333;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .pay-type {
-            display: inline-block;
-            padding: 5px 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 16px;
             border-radius: 20px;
             font-size: 14px;
             font-weight: 500;
@@ -140,15 +150,15 @@ $hasQrcode = !empty($qrCodeUrl);
         }
         .order-info {
             background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 25px;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
         }
         .order-info-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
         .order-info-item:last-child {
             margin-bottom: 0;
@@ -159,66 +169,98 @@ $hasQrcode = !empty($qrCodeUrl);
         .order-info-value {
             color: #333;
             font-weight: 500;
+            text-align: right;
+            flex: 1;
+            margin-left: 10px;
+            word-break: break-all;
         }
         .order-amount {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+            border-radius: 10px;
+            border: 1px solid #ffe0e0;
         }
         .order-amount-label {
-            font-size: 14px;
+            font-size: 13px;
             color: #666;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         .order-amount-value {
-            font-size: 36px;
-            color: #ff6b6b;
+            font-size: 32px;
+            color: #ff4d4f;
             font-weight: bold;
+        }
+        .amount-notice {
+            font-size: 11px;
+            color: #ff6b6b;
+            margin-top: 8px;
+            padding: 8px;
+            background: #fff2f0;
+            border-radius: 6px;
+            line-height: 1.4;
         }
         .qrcode-container {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         .qrcode {
-            width: 200px;
-            height: 200px;
+            width: 100%;
+            max-width: 220px;
+            aspect-ratio: 1;
             border: 2px solid #eee;
-            border-radius: 8px;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             background: #fff;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
         }
         .qrcode img {
-            max-width: 180px;
-            max-height: 180px;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 10px;
         }
         .qrcode-placeholder {
             color: #999;
             font-size: 14px;
+            padding: 20px;
         }
         .pay-tips {
             background: #fff7e6;
             border: 1px solid #ffd591;
-            border-radius: 8px;
-            padding: 15px;
-            font-size: 13px;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 12px;
             color: #666;
             line-height: 1.6;
+            margin-bottom: 15px;
         }
         .pay-tips-title {
-            font-weight: 500;
+            font-weight: 600;
             color: #fa8c16;
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .pay-tips p {
+            margin-bottom: 5px;
+            padding-left: 5px;
         }
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border: 2px solid #f3f3f3;
             border-top: 2px solid #3498db;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-left: 10px;
+            margin-left: 8px;
             vertical-align: middle;
         }
         @keyframes spin {
@@ -228,24 +270,35 @@ $hasQrcode = !empty($qrCodeUrl);
         .status-checking {
             text-align: center;
             color: #666;
-            font-size: 14px;
-            margin-top: 15px;
+            font-size: 13px;
+            padding: 12px;
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .btn-alipay {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            padding: 12px 24px;
-            background: #1677ff;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #1677ff 0%, #0056b3 100%);
             color: #fff;
             text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 25px;
+            font-size: 15px;
             font-weight: 500;
-            transition: opacity 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(22, 119, 255, 0.3);
+            width: 100%;
+            max-width: 250px;
         }
         .btn-alipay:hover {
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(22, 119, 255, 0.4);
         }
         .error-message {
             text-align: center;
@@ -261,24 +314,63 @@ $hasQrcode = !empty($qrCodeUrl);
             display: inline-block;
             padding: 2px 8px;
             border-radius: 4px;
-            font-size: 12px;
-            margin-left: 8px;
+            font-size: 11px;
+            margin-left: 5px;
+            font-weight: normal;
         }
         .method-tag.face {
-            background: #e6f7ff;
-            color: #1677ff;
+            background: rgba(255,255,255,0.3);
+            color: #fff;
         }
         .method-tag.qrcode {
-            background: #f6ffed;
-            color: #52c41a;
+            background: rgba(255,255,255,0.3);
+            color: #fff;
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+                background: #fff;
+            }
+            .pay-container {
+                border-radius: 0;
+                box-shadow: none;
+                max-width: 100%;
+                margin-top: 0;
+                padding: 15px;
+                min-height: 100vh;
+            }
+            .pay-header h1 {
+                font-size: 18px;
+            }
+            .order-amount-value {
+                font-size: 28px;
+            }
+            .qrcode {
+                max-width: 200px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .pay-container {
+                padding: 12px;
+            }
+            .order-amount-value {
+                font-size: 24px;
+            }
+            .qrcode {
+                max-width: 180px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="pay-container">
         <div class="pay-header">
-            <h1>扫码支付</h1>
+            <h1><i class="ri-qr-code-line"></i> 扫码支付</h1>
             <span class="pay-type <?php echo $order['type']; ?>">
+                <i class="ri-<?php echo $order['type'] == 'alipay' ? 'alipay' : 'wechat-pay'; ?>-line"></i>
                 <?php echo $payTypeName; ?>
                 <?php if ($payMethod == 'face'): ?>
                 <span class="method-tag face">当面付</span>
@@ -290,11 +382,11 @@ $hasQrcode = !empty($qrCodeUrl);
 
         <div class="order-info">
             <div class="order-info-item">
-                <span class="order-info-label">商品名称</span>
+                <span class="order-info-label"><i class="ri-shopping-bag-line"></i> 商品名称</span>
                 <span class="order-info-value"><?php echo htmlspecialchars($order['name']); ?></span>
             </div>
             <div class="order-info-item">
-                <span class="order-info-label">订单号</span>
+                <span class="order-info-label"><i class="ri-file-list-line"></i> 订单号</span>
                 <span class="order-info-value"><?php echo htmlspecialchars($order['out_trade_no']); ?></span>
             </div>
         </div>
@@ -302,7 +394,9 @@ $hasQrcode = !empty($qrCodeUrl);
         <div class="order-amount">
             <div class="order-amount-label">支付金额</div>
             <div class="order-amount-value">¥<?php echo number_format($order['money'], 2); ?></div>
-            <div style="font-size: 12px; color: #ff6b6b; margin-top: 5px;">实际支付金额可能包含0.01-0.99的随机小数，请按显示金额准确支付</div>
+            <div class="amount-notice">
+                <i class="ri-error-warning-line"></i> 实际支付金额可能包含0.01-0.99的随机小数，请按显示金额准确支付
+            </div>
         </div>
 
         <?php if ($merchantNotConfigured): ?>
@@ -317,13 +411,13 @@ $hasQrcode = !empty($qrCodeUrl);
                 <?php if ($qrCodeUrl): ?>
                     <?php if ($order['type'] == 'alipay' && !empty($payUrl)): ?>
                         <a href="<?php echo $payUrl; ?>" target="_blank">
-                            <img src="<?php echo $qrCodeUrl; ?>" alt="支付宝收款码" style="max-width: 180px; max-height: 180px;">
+                            <img src="<?php echo $qrCodeUrl; ?>" alt="支付宝收款码">
                         </a>
                     <?php else: ?>
                         <img src="<?php echo $qrCodeUrl; ?>" alt="收款码">
                     <?php endif; ?>
                 <?php else: ?>
-                    <span class="qrcode-placeholder">收款码未配置</span>
+                    <span class="qrcode-placeholder"><i class="ri-qr-code-line" style="font-size: 48px; display: block; margin-bottom: 10px;"></i>收款码未配置</span>
                 <?php endif; ?>
             </div>
             <?php if ($order['type'] == 'alipay' && !empty($payUrl)): ?>
@@ -336,18 +430,17 @@ $hasQrcode = !empty($qrCodeUrl);
         </div>
 
         <div class="pay-tips">
-            <div class="pay-tips-title">支付说明</div>
+            <div class="pay-tips-title"><i class="ri-lightbulb-line"></i> 支付说明</div>
             <p>1. 请使用<?php echo $payTypeName; ?>扫描上方二维码</p>
             <p>2. 请确保支付金额与订单金额一致</p>
             <p>3. 支付完成后请等待页面自动跳转</p>
-            <p style="color: #ff6b6b; font-weight: bold;"><i class="ri-error-warning-line"></i> 实际支付金额可能包含0.01-0.99的随机小数，请按显示金额准确支付</p>
             <?php if ($payMethod == 'face'): ?>
-            <p style="margin-top: 10px; color: #1677ff;"><i class="ri-information-line"></i> 使用支付宝当面付，支付状态实时同步</p>
+            <p style="margin-top: 8px; color: #1677ff;"><i class="ri-information-line"></i> 使用支付宝当面付，支付状态实时同步</p>
             <?php endif; ?>
         </div>
 
         <div class="status-checking">
-            正在检查支付状态<span class="loading"></span>
+            <i class="ri-refresh-line" style="margin-right: 5px;"></i> 正在检查支付状态<span class="loading"></span>
         </div>
         <?php endif; ?>
     </div>
