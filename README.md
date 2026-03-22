@@ -266,6 +266,8 @@ RewriteRule ^(.*)$ $1.php [QSA,L]
 
 如有问题或建议，请联系作者：久寒
 
+- **Telegram群组**：[点击加入](https://t.me/+fokNTrkwA0k2MGM1)
+
 ## 赞助支持
 
 如果这个项目对你有帮助，欢迎赞助支持！
