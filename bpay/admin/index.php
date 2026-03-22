@@ -341,6 +341,14 @@ include 'header.php';
                 <span>测试支付</span>
             </a>
         </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">开发</div>
+            <a href="?page=docs" class="nav-item <?php echo $page == 'docs' ? 'active' : ''; ?>">
+                <i class="ri-book-open-line"></i>
+                <span>开发文档</span>
+            </a>
+        </div>
     </nav>
     
     <div class="sidebar-footer">
@@ -1016,6 +1024,409 @@ ${log.response.body ? JSON.stringify(log.response.body, null, 2) : '(空)'}</div
         
         // 初始加载
         loadLogs();
+    </script>
+    
+    <?php elseif ($page == 'docs'): ?>
+    <!-- 开发文档 -->
+    <div class="page-header">
+        <h2>开发文档</h2>
+        <p>商户对接 API 接口文档</p>
+    </div>
+
+    <div class="content-card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="ri-book-open-line"></i> 对接流程</h3>
+        </div>
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+            <pre style="margin: 0; font-family: 'Monaco', 'Consolas', monospace; font-size: 13px; line-height: 1.6; color: var(--text-secondary);">商户系统 → 提交订单(submit.php) → 跳转收银台(pay.php) → 用户支付 → 异步通知(notify.php) → 商户系统
+                                    ↓
+                              支付完成 → 同步跳转(return_url)</pre>
+        </div>
+    </div>
+
+    <!-- 接口信息卡片 -->
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <div class="stat-card" style="cursor: pointer;" onclick="showDocSection('submit')">
+            <div class="stat-icon blue">
+                <i class="ri-send-plane-line"></i>
+            </div>
+            <div class="stat-value" style="font-size: 20px;">提交订单</div>
+            <div class="stat-label">submit.php</div>
+        </div>
+        <div class="stat-card" style="cursor: pointer;" onclick="showDocSection('notify')">
+            <div class="stat-icon green">
+                <i class="ri-notification-3-line"></i>
+            </div>
+            <div class="stat-value" style="font-size: 20px;">异步通知</div>
+            <div class="stat-label">notify.php</div>
+        </div>
+        <div class="stat-card" style="cursor: pointer;" onclick="showDocSection('query')">
+            <div class="stat-icon purple">
+                <i class="ri-search-line"></i>
+            </div>
+            <div class="stat-value" style="font-size: 20px;">订单查询</div>
+            <div class="stat-label">query_order.php</div>
+        </div>
+    </div>
+
+    <!-- 商户信息 -->
+    <div class="content-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="ri-key-line"></i> 商户信息</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div>
+                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 13px;">商户ID (pid)</label>
+                <div style="background: var(--bg-secondary); padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 14px;">
+                    <?php echo $merchantId; ?>
+                </div>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 13px;">商户密钥 (key)</label>
+                <div style="background: var(--bg-secondary); padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+                    <span id="merchantKeyDisplay">********</span>
+                    <button type="button" onclick="toggleKeyDisplay()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+                        <i class="ri-eye-line" id="keyToggleIcon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 接口详情 -->
+    <div class="content-card" id="docSubmit" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="ri-send-plane-line"></i> 1. 提交订单接口</h3>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 13px;">接口地址</label>
+            <div style="background: var(--bg-secondary); padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 14px;">
+                POST <?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/bpay/submit.php'; ?>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">请求参数</label>
+            <table class="data-table" style="font-size: 13px;">
+                <thead>
+                    <tr>
+                        <th>参数名</th>
+                        <th>必填</th>
+                        <th>类型</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>pid</td><td>是</td><td>string</td><td>商户ID</td></tr>
+                    <tr><td>type</td><td>是</td><td>string</td><td>支付方式：alipay/wxpay</td></tr>
+                    <tr><td>out_trade_no</td><td>是</td><td>string</td><td>商户订单号，需唯一</td></tr>
+                    <tr><td>notify_url</td><td>是</td><td>string</td><td>异步通知地址</td></tr>
+                    <tr><td>return_url</td><td>是</td><td>string</td><td>同步跳转地址</td></tr>
+                    <tr><td>name</td><td>是</td><td>string</td><td>商品名称</td></tr>
+                    <tr><td>money</td><td>是</td><td>float</td><td>支付金额（元）</td></tr>
+                    <tr><td>sign</td><td>是</td><td>string</td><td>签名（见下方算法）</td></tr>
+                    <tr><td>sign_type</td><td>是</td><td>string</td><td>签名类型：MD5</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <label style="display: block; margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">PHP 示例代码</label>
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">PHP</span>
+                    <button class="code-copy" onclick="copyCode(this)">
+                        <i class="ri-file-copy-line"></i> 复制
+                    </button>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-php">&lt;?php
+// ============================================
+// 配置信息
+// ============================================
+$apiUrl = 'http://<?php echo $_SERVER['HTTP_HOST']; ?>/bpay/submit.php';
+$merchantKey = '<?php echo $merchantKey; ?>';
+
+// ============================================
+// 订单参数
+// ============================================
+$params = [
+    'pid' => '<?php echo $merchantId; ?>',              // 商户ID
+    'type' => 'alipay',                                // 支付方式：alipay/wxpay
+    'out_trade_no' => 'ORDER' . time(),                // 商户订单号（需唯一）
+    'notify_url' => 'http://yourdomain/notify.php',    // 异步通知地址
+    'return_url' => 'http://yourdomain/success.php',   // 同步跳转地址
+    'name' => '测试商品',                               // 商品名称
+    'money' => '1.00',                                 // 支付金额（元）
+    'sign_type' => 'MD5'                               // 签名类型
+];
+
+// ============================================
+// 生成签名并提交
+// ============================================
+$params['sign'] = getSign($params, $merchantKey);
+
+// 自动提交表单
+echo '&lt;form id="payform" action="' . $apiUrl . '" method="POST"&gt;';
+foreach ($params as $key => $val) {
+    echo '&lt;input type="hidden" name="' . $key . '" value="' . htmlspecialchars($val) . '"&gt;';
+}
+echo '&lt;/form&gt;';
+echo '&lt;script&gt;document.getElementById("payform").submit();&lt;/script&gt;';
+
+// ============================================
+// 签名函数
+// ============================================
+function getSign($params, $key) {
+    // 1. 去除 sign 和 sign_type 参数
+    unset($params['sign'], $params['sign_type']);
+    
+    // 2. 按参数名 ASCII 码升序排序
+    ksort($params);
+    
+    // 3. 拼接成字符串
+    $signStr = '';
+    foreach ($params as $k => $v) {
+        if ($v !== '') $signStr .= $k . '=' . $v . '&';
+    }
+    
+    // 4. 去掉最后一个 & 并追加密钥
+    $signStr = rtrim($signStr, '&') . $key;
+    
+    // 5. MD5 加密
+    return md5($signStr);
+}
+?&gt;</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card" id="docNotify" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="ri-notification-3-line"></i> 2. 异步通知接口</h3>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 13px;">通知方式</label>
+            <div style="background: var(--bg-secondary); padding: 12px 16px; border-radius: 8px;">
+                POST 请求到商户提供的 notify_url
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">通知参数</label>
+            <table class="data-table" style="font-size: 13px;">
+                <thead>
+                    <tr><th>参数名</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>trade_no</td><td>平台订单号</td></tr>
+                    <tr><td>out_trade_no</td><td>商户订单号</td></tr>
+                    <tr><td>type</td><td>支付方式</td></tr>
+                    <tr><td>pid</td><td>商户ID</td></tr>
+                    <tr><td>name</td><td>商品名称</td></tr>
+                    <tr><td>money</td><td>支付金额</td></tr>
+                    <tr><td>trade_status</td><td>交易状态：TRADE_SUCCESS</td></tr>
+                    <tr><td>sign</td><td>签名</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <label style="display: block; margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">处理示例</label>
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">PHP</span>
+                    <button class="code-copy" onclick="copyCode(this)">
+                        <i class="ri-file-copy-line"></i> 复制
+                    </button>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-php">&lt;?php
+// ============================================
+// 配置信息
+// ============================================
+$merchantKey = '<?php echo $merchantKey; ?>';  // 商户密钥
+
+// ============================================
+// 接收通知参数
+// ============================================
+$params = $_POST;
+$sign = $params['sign'];
+unset($params['sign'], $params['sign_type']);
+
+// ============================================
+// 验证签名
+// ============================================
+$mySign = getSign($params, $merchantKey);
+
+if ($sign === $mySign && $params['trade_status'] === 'TRADE_SUCCESS') {
+    // TODO: 处理订单（注意幂等性，防止重复处理）
+    // 建议：根据 out_trade_no 查询订单是否已处理
+    
+    echo 'success';  // 必须返回 success，否则系统会重试
+} else {
+    echo 'fail';
+}
+
+// ============================================
+// 签名函数（与请求时相同）
+// ============================================
+function getSign($params, $key) {
+    unset($params['sign'], $params['sign_type']);
+    ksort($params);
+    $signStr = '';
+    foreach ($params as $k => $v) {
+        if ($v !== '') $signStr .= $k . '=' . $v . '&';
+    }
+    return md5(rtrim($signStr, '&') . $key);
+}
+?&gt;</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; padding: 16px; background: rgba(251, 146, 60, 0.1); border: 1px solid rgba(251, 146, 60, 0.2); border-radius: 8px; color: #fb923c;">
+            <i class="ri-error-warning-line"></i> <strong>重要提示：</strong><br>
+            1. 必须返回纯文本 "success"，否则系统会认为通知失败并重试<br>
+            2. 异步通知可能会多次发送，需要根据订单号去重<br>
+            3. 建议先验证签名再处理业务逻辑
+        </div>
+    </div>
+
+    <div class="content-card" id="docQuery" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="ri-search-line"></i> 3. 订单查询接口（可选）</h3>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 13px;">接口地址</label>
+            <div style="background: var(--bg-secondary); padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 14px;">
+                GET <?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/bpay/api/query_order.php?trade_no=平台订单号'; ?>
+            </div>
+        </div>
+
+        <div>
+            <label style="display: block; margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">返回结果</label>
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="code-copy" onclick="copyCode(this)">
+                        <i class="ri-file-copy-line"></i> 复制
+                    </button>
+                </div>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "code": "success",
+  "status": 0,
+  "trade_no": "202401011200001234",
+  "out_trade_no": "ORDER123456",
+  "money": "1.00"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card" style="margin-top: 24px;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="ri-shield-keyhole-line"></i> 签名算法</h3>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">签名步骤</label>
+            <ol style="color: var(--text-secondary); line-height: 2; padding-left: 20px;">
+                <li>筛选参数：去除 sign 和 sign_type 参数</li>
+                <li>参数排序：按参数名 ASCII 码升序排序</li>
+                <li>拼接字符串：将排序后的参数拼接成 key1=value1&key2=value2 格式</li>
+                <li>追加密钥：在字符串末尾追加商户密钥 key</li>
+                <li>MD5加密：对完整字符串进行 MD5 加密，得到签名</li>
+            </ol>
+        </div>
+
+        <div>
+            <label style="display: block; margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">签名示例</label>
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">示例</span>
+                    <button class="code-copy" onclick="copyCode(this)">
+                        <i class="ri-file-copy-line"></i> 复制
+                    </button>
+                </div>
+                <div class="code-block">
+                    <pre><code>原始参数：
+pid=10001&type=alipay&out_trade_no=ORDER123&money=1.00&name=测试商品
+
+排序后：
+money=1.00&name=测试商品&out_trade_no=ORDER123&pid=10001&type=alipay
+
+拼接密钥：
+money=1.00&name=测试商品&out_trade_no=ORDER123&pid=10001&type=alipay<?php echo $merchantKey; ?>
+
+MD5加密：
+sign = md5("money=1.00&name=测试商品&out_trade_no=ORDER123&pid=10001&type=alipay<?php echo $merchantKey; ?>")</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化代码高亮
+        hljs.highlightAll();
+        
+        // 复制代码功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-block-wrapper').querySelector('code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="ri-check-line"></i> 已复制';
+                btn.style.color = '#22c55e';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制');
+            });
+        }
+        
+        // 切换密钥显示
+        function toggleKeyDisplay() {
+            const display = document.getElementById('merchantKeyDisplay');
+            const icon = document.getElementById('keyToggleIcon');
+            const key = '<?php echo $merchantKey; ?>';
+            
+            if (display.textContent === '********') {
+                display.textContent = key;
+                icon.className = 'ri-eye-off-line';
+            } else {
+                display.textContent = '********';
+                icon.className = 'ri-eye-line';
+            }
+        }
+        
+        // 显示指定文档章节
+        function showDocSection(section) {
+            const sections = ['submit', 'notify', 'query'];
+            sections.forEach(s => {
+                const el = document.getElementById('doc' + s.charAt(0).toUpperCase() + s.slice(1));
+                if (el) {
+                    el.style.display = s === section ? 'block' : 'none';
+                }
+            });
+            
+            // 滚动到对应章节
+            const target = document.getElementById('doc' + section.charAt(0).toUpperCase() + section.slice(1));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     </script>
     
     <?php elseif ($page == 'config'): ?>
