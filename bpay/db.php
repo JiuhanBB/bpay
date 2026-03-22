@@ -55,6 +55,9 @@ class BPayDB {
             pay_time INTEGER
         )");
         
+        // 检查并添加 original_money 字段（兼容旧数据库）
+        $this->addColumnIfNotExists('orders', 'original_money', 'DECIMAL(10,2)');
+        
         // 配置表
         $this->db->exec("CREATE TABLE IF NOT EXISTS config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -106,6 +109,24 @@ class BPayDB {
     public function setConfig($name, $value) {
         $stmt = $this->db->prepare("INSERT OR REPLACE INTO config (name, value) VALUES (:name, :value)");
         return $stmt->execute([':name' => $name, ':value' => $value]);
+    }
+    
+    /**
+     * 检查并添加表字段（如果不存在）
+     */
+    private function addColumnIfNotExists($table, $column, $type) {
+        try {
+            // 检查字段是否存在
+            $stmt = $this->db->query("PRAGMA table_info($table)");
+            $columns = $stmt->fetchAll(PDO::FETCH_COLUMN, 1);
+            
+            if (!in_array($column, $columns)) {
+                // 字段不存在，添加字段
+                $this->db->exec("ALTER TABLE $table ADD COLUMN $column $type");
+            }
+        } catch (PDOException $e) {
+            // 忽略错误（可能是表不存在或其他问题）
+        }
     }
     
     /**
