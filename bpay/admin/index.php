@@ -1145,7 +1145,7 @@ ${log.response.body ? JSON.stringify(log.response.body, null, 2) : '(空)'}</div
 // ============================================
 // 配置信息
 // ============================================
-$apiUrl = 'http://<?php echo $_SERVER['HTTP_HOST']; ?>/bpay/submit.php';
+$apiUrl = 'http://<?php echo $_SERVER['HTTP_HOST']; ?>/submit.php';
 $merchantKey = '<?php echo $merchantKey; ?>';
 
 // ============================================
