@@ -10,6 +10,11 @@ class BPayDB {
     
     public function __construct($dbFile = 'bpay.db') {
         $this->dbFile = $dbFile;
+        // 自动创建数据库文件所在目录
+        $dbDir = dirname($dbFile);
+        if ($dbDir !== '.' && !is_dir($dbDir)) {
+            mkdir($dbDir, 0777, true);
+        }
         $this->connect();
         // 自动初始化表（如果不存在）
         $this->initTables();

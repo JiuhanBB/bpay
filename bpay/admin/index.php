@@ -101,7 +101,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['alipay_json_config']
 
 // 处理收款码上传
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['alipay_qrcode'])) {
-    $target = '../assets/images/alipay_qrcode.png';
+    $targetDir = '../assets/images/';
+    // 自动创建目录
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    }
+    $target = $targetDir . 'alipay_qrcode.png';
     if (move_uploaded_file($_FILES['alipay_qrcode']['tmp_name'], $target)) {
         $message = '支付宝收款码上传成功';
     } else {
@@ -112,7 +117,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['alipay_qrcode'])) {
 $page = $_GET['page'] ?? 'dashboard';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['wxpay_qrcode'])) {
-    $target = '../assets/images/wxpay_qrcode.png';
+    $targetDir = '../assets/images/';
+    // 自动创建目录
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    }
+    $target = $targetDir . 'wxpay_qrcode.png';
     if (move_uploaded_file($_FILES['wxpay_qrcode']['tmp_name'], $target)) {
         $message = '微信收款码上传成功';
     } else {
