@@ -368,6 +368,8 @@ include 'header.php';
                             <span class="status-badge pending"><i class="ri-time-line"></i> 待支付</span>
                         <?php elseif ($order['status'] == 1): ?>
                             <span class="status-badge paid"><i class="ri-check-line"></i> 已支付</span>
+                        <?php elseif ($order['status'] == 2): ?>
+                            <span class="status-badge" style="background: rgba(255, 71, 87, 0.1); color: #ff4757;"><i class="ri-close-line"></i> 已取消</span>
                         <?php else: ?>
                             <span class="status-badge notified"><i class="ri-send-plane-line"></i> 已通知</span>
                         <?php endif; ?>
@@ -433,6 +435,7 @@ include 'header.php';
                             <select name="new_status" class="form-control" style="width:auto;display:inline-block;padding:4px 8px;font-size:12px;" onchange="this.form.submit()">
                                 <option value="0" <?php echo $order['status'] == 0 ? 'selected' : ''; ?>>待支付</option>
                                 <option value="1" <?php echo $order['status'] == 1 ? 'selected' : ''; ?>>已支付</option>
+                                <option value="2" <?php echo $order['status'] == 2 ? 'selected' : ''; ?>>已取消</option>
                             </select>
                         </form>
                     </td>

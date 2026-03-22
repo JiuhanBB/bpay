@@ -149,13 +149,45 @@ class BPayDB {
     }
     
     /**
-     * 根据金额查找待支付订单
+     * 根据金额查找待支付订单（排除超时订单）
      */
     public function getPendingOrderByMoney($money) {
+        // 先清理超时订单
+        $this->cancelExpiredOrders();
+        
         // 使用CAST确保金额比较时类型一致
         $stmt = $this->db->prepare("SELECT * FROM orders WHERE CAST(money AS REAL) = CAST(:money AS REAL) AND status = 0 ORDER BY create_time DESC LIMIT 1");
         $stmt->execute([':money' => $money]);
         return $stmt->fetch();
+    }
+    
+    /**
+     * 取消超时订单（5分钟）
+     */
+    public function cancelExpiredOrders() {
+        $expireTime = time() - 300; // 5分钟 = 300秒
+        $stmt = $this->db->prepare("UPDATE orders SET status = 2 WHERE status = 0 AND create_time < :expire_time");
+        $stmt->execute([':expire_time' => $expireTime]);
+        return $stmt->rowCount();
+    }
+    
+    /**
+     * 手动取消订单
+     */
+    public function cancelOrder($tradeNo) {
+        $stmt = $this->db->prepare("UPDATE orders SET status = 2 WHERE trade_no = :trade_no AND status = 0");
+        return $stmt->execute([':trade_no' => $tradeNo]);
+    }
+    
+    /**
+     * 检查订单是否超时
+     */
+    public function isOrderExpired($order) {
+        if ($order['status'] != 0) {
+            return false;
+        }
+        $expireTime = $order['create_time'] + 300; // 5分钟后过期
+        return time() > $expireTime;
     }
     
     /**
