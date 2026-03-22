@@ -267,7 +267,7 @@ RewriteRule ^(.*)$ $1.php [QSA,L]
 如有问题或建议，请联系作者：久寒
 
 - **Telegram群组**：[点击加入](https://t.me/+fokNTrkwA0k2MGM1)
-- **小红书**：[久寒[进主页群]](https://xhslink.com/m/2N0BOtdcR3t)
+- **小红书**：[久寒](https://xhslink.com/m/2N0BOtdcR3t)
 
 ## 赞助支持
 
