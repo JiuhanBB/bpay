@@ -950,6 +950,128 @@ $theme = $_COOKIE['bpay_theme'] ?? 'dark';
                 padding-bottom: calc(20px + env(safe-area-inset-bottom));
             }
         }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        .slide-in {
+            opacity: 0;
+            animation: slideInUp 0.4s ease-out forwards;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+            transition: transform 0.1s;
+        }
+        
+        .page-btn:not(.disabled):active {
+            transform: scale(0.9);
+            transition: transform 0.1s;
+        }
+        
+        .status-badge {
+            transition: all 0.3s ease;
+        }
+        
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .data-table tr {
+            transition: background-color 0.2s ease;
+        }
+        
+        .data-table tr:hover {
+            background-color: var(--bg-hover);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--text-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .content-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            transform: translateX(4px);
+        }
+        
+        .form-control {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        
+        [data-theme="light"] .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 <body>

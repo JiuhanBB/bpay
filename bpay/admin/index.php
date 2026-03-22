@@ -49,6 +49,71 @@ if (isset($_GET['toggle_theme'])) {
 // 获取当前主题
 $theme = $_COOKIE['bpay_theme'] ?? 'dark';
 
+// 处理 AJAX 请求
+if (isset($_GET['ajax'])) {
+    header('Content-Type: application/json');
+    
+    // 搜索订单
+    if ($_GET['ajax'] === 'search_orders') {
+        // 先清理超时订单
+        $db->cancelExpiredOrders();
+        
+        $keyword = $_GET['keyword'] ?? '';
+        $status = $_GET['status'] ?? '';
+        $type = $_GET['type'] ?? '';
+        $startDate = $_GET['start_date'] ?? '';
+        $endDate = $_GET['end_date'] ?? '';
+        $page = intval($_GET['p'] ?? 1);
+        $perPage = 20;
+        $offset = ($page - 1) * $perPage;
+        
+        $orders = $db->searchOrders($keyword, $status, $type, $startDate, $endDate, $perPage, $offset);
+        $total = $db->getSearchOrderCount($keyword, $status, $type, $startDate, $endDate);
+        
+        echo json_encode([
+            'success' => true,
+            'orders' => $orders,
+            'total' => $total,
+            'page' => $page,
+            'totalPages' => ceil($total / $perPage)
+        ]);
+        exit;
+    }
+    
+    // 更新订单状态
+    if ($_GET['ajax'] === 'update_order_status') {
+        $tradeNo = $_POST['trade_no'] ?? '';
+        $newStatus = intval($_POST['new_status'] ?? 0);
+        
+        if (!empty($tradeNo) && in_array($newStatus, [0, 1, 2])) {
+            // 获取当前订单信息
+            $order = $db->getOrderByTradeNo($tradeNo);
+            
+            if ($order && $order['status'] == 2 && $newStatus == 0) {
+                // 如果是从已取消恢复到待支付，更新创建时间为当前时间
+                $result = $db->restoreCancelledOrder($tradeNo);
+            } else {
+                $result = $db->manualUpdateOrderStatus($tradeNo, $newStatus);
+            }
+            
+            if ($result) {
+                $logger = new Logger();
+                $logger->log('admin', '手动更新订单状态', [
+                    'trade_no' => $tradeNo,
+                    'new_status' => $newStatus,
+                    'old_status' => $order['status'] ?? 'unknown'
+                ]);
+                echo json_encode(['success' => true, 'message' => '状态更新成功']);
+            } else {
+                echo json_encode(['success' => false, 'message' => '更新失败']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => '参数错误']);
+        }
+        exit;
+    }
+}
+
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
     if (!empty($_POST['merchant_key'])) {
@@ -182,27 +247,7 @@ if ($page == 'test_pay' && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST
     }
 }
 
-// 处理订单状态更新
-if ($page == 'orders' && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {
-    $tradeNo = $_POST['trade_no'] ?? '';
-    $newStatus = intval($_POST['new_status'] ?? 0);
-
-    if (!empty($tradeNo) && in_array($newStatus, [0, 1])) {
-        $result = $db->manualUpdateOrderStatus($tradeNo, $newStatus);
-        if ($result) {
-            // 初始化日志记录器
-            require_once '../lib/Logger.php';
-            $logger = new Logger();
-            $logger->log('admin', '手动更新订单状态', [
-                'trade_no' => $tradeNo,
-                'new_status' => $newStatus
-            ]);
-        }
-    }
-    // 刷新页面
-    header('Location: ?page=orders&p=' . $currentPage);
-    exit;
-}
+// 订单状态更新已改为 AJAX 方式，无需表单提交处理
 
 // 获取配置
 $merchantId = $db->getConfig('merchant_id');
@@ -212,19 +257,33 @@ $merchantKey = $db->getConfig('merchant_key');
 $configFile = '../config.php';
 $config = file_exists($configFile) ? require $configFile : ['log_enabled' => true];
 
-// 订单分页
+// 订单分页和搜索
 $perPage = 20;
 $currentPage = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
 $offset = ($currentPage - 1) * $perPage;
 
+// 搜索参数
+$searchKeyword = $_GET['keyword'] ?? '';
+$searchStatus = $_GET['status'] ?? '';
+$searchType = $_GET['type'] ?? '';
+$searchStartDate = $_GET['start_date'] ?? '';
+$searchEndDate = $_GET['end_date'] ?? '';
+$isSearch = !empty($searchKeyword) || $searchStatus !== '' || $searchType !== '' || !empty($searchStartDate) || !empty($searchEndDate);
+
 // 获取订单列表和总数
-$orders = $db->getOrderListPaged($perPage, $offset);
-$totalOrders = $db->getOrderCount();
+if ($isSearch) {
+    $orders = $db->searchOrders($searchKeyword, $searchStatus, $searchType, $searchStartDate, $searchEndDate, $perPage, $offset);
+    $totalOrders = $db->getSearchOrderCount($searchKeyword, $searchStatus, $searchType, $searchStartDate, $searchEndDate);
+} else {
+    $orders = $db->getOrderListPaged($perPage, $offset);
+    $totalOrders = $db->getOrderCount();
+}
 $totalPages = ceil($totalOrders / $perPage);
 
 // 统计
 $pendingOrders = $db->getOrderCountByStatus(0);
 $paidOrders = $db->getOrderCountByStatus(1);
+$cancelledOrders = $db->getOrderCountByStatus(2);
 
 // 获取日志日期列表（用于日志页面）
 $logger = new Logger();
@@ -337,6 +396,13 @@ include 'header.php';
             <div class="stat-value"><?php echo number_format($paidOrders); ?></div>
             <div class="stat-label">已支付</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(255, 71, 87, 0.1); color: #ff4757;">
+                <i class="ri-close-circle-line"></i>
+            </div>
+            <div class="stat-value"><?php echo number_format($cancelledOrders); ?></div>
+            <div class="stat-label">已取消</div>
+        </div>
     </div>
     
     <!-- 最近订单 -->
@@ -388,6 +454,61 @@ include 'header.php';
         <p>查看和管理所有订单</p>
     </div>
 
+    <!-- 搜索和导出工具栏 -->
+    <div class="content-card">
+        <div class="card-header" style="flex-wrap: wrap; gap: 15px;">
+            <h3 class="card-title"><i class="ri-search-line"></i> 订单搜索</h3>
+            <button class="btn btn-outline" onclick="openExportModal()" style="margin-left: auto;">
+                <i class="ri-download-line"></i> 导出订单
+            </button>
+        </div>
+        
+        <div class="search-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="searchKeyword" class="form-control" placeholder="订单号/商品名称" style="padding: 12px 16px;" onkeypress="if(event.key==='Enter')searchOrders()">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <select id="searchStatus" class="form-control" style="padding: 12px 16px;" onchange="searchOrders()">
+                    <option value="">所有状态</option>
+                    <option value="0">待支付</option>
+                    <option value="1">已支付</option>
+                    <option value="2">已取消</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <select id="searchType" class="form-control" style="padding: 12px 16px;" onchange="searchOrders()">
+                    <option value="">所有支付方式</option>
+                    <option value="alipay">支付宝</option>
+                    <option value="wxpay">微信支付</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="date" id="searchStartDate" class="form-control" placeholder="开始日期" style="padding: 12px 16px;" onchange="searchOrders()">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="date" id="searchEndDate" class="form-control" placeholder="结束日期" style="padding: 12px 16px;" onchange="searchOrders()">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0; display: flex; gap: 8px;">
+                <button type="button" class="btn btn-sm" onclick="searchOrders()" style="padding: 10px 16px;">
+                    <i class="ri-search-line"></i> 搜索
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="resetSearch()" style="padding: 10px 16px;">
+                    <i class="ri-reset-left-line"></i> 重置
+                </button>
+            </div>
+        </div>
+        
+        <div id="searchResultInfo" class="alert alert-success" style="margin-bottom: 20px; display: none;">
+            <i class="ri-information-line"></i>
+            <span id="searchResultText"></span>
+        </div>
+    </div>
+
     <div class="content-card">
         <table class="data-table">
             <thead>
@@ -398,77 +519,241 @@ include 'header.php';
                     <th>金额</th>
                     <th>支付方式</th>
                     <th>状态</th>
-                    <th>通知状态</th>
                     <th>创建时间</th>
                     <th>操作</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php foreach ($orders as $order): ?>
-                <tr>
-                    <td><?php echo substr($order['trade_no'], -16); ?></td>
-                    <td><?php echo htmlspecialchars($order['out_trade_no']); ?></td>
-                    <td><?php echo htmlspecialchars($order['name']); ?></td>
-                    <td>¥<?php echo $order['money']; ?></td>
-                    <td><?php echo $order['type'] == 'alipay' ? '<i class="ri-alipay-line" style="color:#1677ff"></i> 支付宝' : '<i class="ri-wechat-pay-line" style="color:#07c160"></i> 微信'; ?></td>
-                    <td>
-                        <?php if ($order['status'] == 0): ?>
-                            <span class="status-badge pending"><i class="ri-time-line"></i> 待支付</span>
-                        <?php elseif ($order['status'] == 1): ?>
-                            <span class="status-badge paid"><i class="ri-check-line"></i> 已支付</span>
-                        <?php else: ?>
-                            <span class="status-badge notified"><i class="ri-send-plane-line"></i> 已通知</span>
-                        <?php endif; ?>
-                    </td>
-                    <td>
-                        <?php if ($order['notify_status'] == 1): ?>
-                            <span class="status-badge paid"><i class="ri-check-line"></i> 已通知</span>
-                        <?php else: ?>
-                            <span class="status-badge pending"><i class="ri-time-line"></i> 未通知</span>
-                        <?php endif; ?>
-                    </td>
-                    <td><?php echo date('Y-m-d H:i:s', $order['create_time']); ?></td>
-                    <td>
-                        <form method="POST" action="?page=orders&p=<?php echo $currentPage; ?>" style="display:inline;">
-                            <input type="hidden" name="action" value="update_status">
-                            <input type="hidden" name="trade_no" value="<?php echo $order['trade_no']; ?>">
-                            <select name="new_status" class="form-control" style="width:auto;display:inline-block;padding:4px 8px;font-size:12px;" onchange="this.form.submit()">
-                                <option value="0" <?php echo $order['status'] == 0 ? 'selected' : ''; ?>>待支付</option>
-                                <option value="1" <?php echo $order['status'] == 1 ? 'selected' : ''; ?>>已支付</option>
-                                <option value="2" <?php echo $order['status'] == 2 ? 'selected' : ''; ?>>已取消</option>
-                            </select>
-                        </form>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
+            <tbody id="orderTableBody">
+                <!-- AJAX 加载 -->
             </tbody>
         </table>
         
         <!-- 分页 -->
-        <?php if ($totalPages > 1): ?>
-        <div class="pagination">
-            <?php if ($currentPage > 1): ?>
-                <a href="?page=orders&p=<?php echo $currentPage - 1; ?>" class="page-btn"><i class="ri-arrow-left-line"></i></a>
-            <?php else: ?>
-                <span class="page-btn disabled"><i class="ri-arrow-left-line"></i></span>
-            <?php endif; ?>
-            
-            <?php for ($i = max(1, $currentPage - 2); $i <= min($totalPages, $currentPage + 2); $i++): ?>
-                <?php if ($i == $currentPage): ?>
-                    <span class="page-btn active"><?php echo $i; ?></span>
-                <?php else: ?>
-                    <a href="?page=orders&p=<?php echo $i; ?>" class="page-btn"><?php echo $i; ?></a>
-                <?php endif; ?>
-            <?php endfor; ?>
-            
-            <?php if ($currentPage < $totalPages): ?>
-                <a href="?page=orders&p=<?php echo $currentPage + 1; ?>" class="page-btn"><i class="ri-arrow-right-line"></i></a>
-            <?php else: ?>
-                <span class="page-btn disabled"><i class="ri-arrow-right-line"></i></span>
-            <?php endif; ?>
+        <div class="pagination" id="orderPagination">
+            <!-- AJAX 加载 -->
         </div>
-        <?php endif; ?>
     </div>
+    
+    <script>
+    // 当前页码
+    let currentPageNum = 1;
+    let totalPageNum = 1;
+    
+    // 状态映射
+    const statusMap = {
+        0: { text: '待支付', class: 'pending', icon: 'ri-time-line' },
+        1: { text: '已支付', class: 'paid', icon: 'ri-check-line' },
+        2: { text: '已取消', class: '', icon: 'ri-close-line', style: 'background: rgba(255, 71, 87, 0.1); color: #ff4757;' }
+    };
+    
+    // 加载订单列表
+    function loadOrders(page = 1) {
+        currentPageNum = page;
+        
+        const keyword = document.getElementById('searchKeyword').value;
+        const status = document.getElementById('searchStatus').value;
+        const type = document.getElementById('searchType').value;
+        const startDate = document.getElementById('searchStartDate').value;
+        const endDate = document.getElementById('searchEndDate').value;
+        
+        // 显示加载动画
+        const tbody = document.getElementById('orderTableBody');
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 60px;"><div class="loading-spinner"></div><p style="margin-top: 16px; color: var(--text-secondary);">加载中...</p></td></tr>';
+        
+        // 构建 URL
+        let url = `?ajax=search_orders&p=${page}`;
+        if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+        if (status) url += `&status=${status}`;
+        if (type) url += `&type=${type}`;
+        if (startDate) url += `&start_date=${startDate}`;
+        if (endDate) url += `&end_date=${endDate}`;
+        
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    renderOrders(data.orders);
+                    renderPagination(data.page, data.totalPages);
+                    totalPageNum = data.totalPages;
+                    
+                    // 显示搜索结果
+                    const isSearch = keyword || status || type || startDate || endDate;
+                    if (isSearch) {
+                        document.getElementById('searchResultInfo').style.display = 'block';
+                        document.getElementById('searchResultText').textContent = `搜索到 ${data.total} 条订单`;
+                    } else {
+                        document.getElementById('searchResultInfo').style.display = 'none';
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('加载订单失败:', err);
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--danger);"><i class="ri-error-warning-line" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>加载失败，请重试</td></tr>';
+            });
+    }
+    
+    // 渲染订单列表
+    function renderOrders(orders) {
+        const tbody = document.getElementById('orderTableBody');
+        
+        if (orders.length === 0) {
+            tbody.innerHTML = '<tr class="fade-in"><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">暂无订单</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = orders.map((order, index) => {
+            const status = statusMap[order.status] || statusMap[0];
+            const payType = order.type === 'alipay' 
+                ? '<i class="ri-alipay-line" style="color:#1677ff"></i> 支付宝'
+                : '<i class="ri-wechat-pay-line" style="color:#07c160"></i> 微信';
+            
+            // 添加延迟动画
+            const delay = index * 50;
+            
+            return `
+                <tr class="slide-in" style="animation-delay: ${delay}ms">
+                    <td>${order.trade_no.slice(-16)}</td>
+                    <td>${escapeHtml(order.out_trade_no)}</td>
+                    <td>${escapeHtml(order.name)}</td>
+                    <td>¥${order.money}</td>
+                    <td>${payType}</td>
+                    <td>
+                        <span class="status-badge ${status.class}" style="${status.style || ''}">
+                            <i class="${status.icon}"></i> ${status.text}
+                        </span>
+                    </td>
+                    <td>${formatDate(order.create_time)}</td>
+                    <td>
+                        <select class="form-control order-status-select" data-trade-no="${order.trade_no}" style="width:auto;display:inline-block;padding:4px 8px;font-size:12px;">
+                            <option value="0" ${order.status == 0 ? 'selected' : ''}>待支付</option>
+                            <option value="1" ${order.status == 1 ? 'selected' : ''}>已支付</option>
+                            <option value="2" ${order.status == 2 ? 'selected' : ''}>已取消</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        // 绑定状态变更事件
+        document.querySelectorAll('.order-status-select').forEach(select => {
+            select.addEventListener('change', function() {
+                updateOrderStatus(this.dataset.tradeNo, this.value, this);
+            });
+        });
+    }
+    
+    // 渲染分页
+    function renderPagination(currentPage, totalPages) {
+        const pagination = document.getElementById('orderPagination');
+        
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // 上一页
+        if (currentPage > 1) {
+            html += `<button class="page-btn" onclick="loadOrders(${currentPage - 1})"><i class="ri-arrow-left-line"></i></button>`;
+        } else {
+            html += `<span class="page-btn disabled"><i class="ri-arrow-left-line"></i></span>`;
+        }
+        
+        // 页码
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === currentPage) {
+                html += `<span class="page-btn active">${i}</span>`;
+            } else {
+                html += `<button class="page-btn" onclick="loadOrders(${i})">${i}</button>`;
+            }
+        }
+        
+        // 下一页
+        if (currentPage < totalPages) {
+            html += `<button class="page-btn" onclick="loadOrders(${currentPage + 1})"><i class="ri-arrow-right-line"></i></button>`;
+        } else {
+            html += `<span class="page-btn disabled"><i class="ri-arrow-right-line"></i></span>`;
+        }
+        
+        pagination.innerHTML = html;
+    }
+    
+    // 更新订单状态
+    function updateOrderStatus(tradeNo, newStatus, selectElement) {
+        const statusNames = { '0': '待支付', '1': '已支付', '2': '已取消' };
+        
+        if (!confirm(`确定要将订单状态改为"${statusNames[newStatus]}"吗？\n\n注意：手动修改状态会影响对账，请谨慎操作！`)) {
+            // 恢复原状态
+            loadOrders(currentPageNum);
+            return;
+        }
+        
+        fetch('?ajax=update_order_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `trade_no=${encodeURIComponent(tradeNo)}&new_status=${newStatus}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // 刷新当前页
+                loadOrders(currentPageNum);
+            } else {
+                alert(data.message || '更新失败');
+                loadOrders(currentPageNum);
+            }
+        })
+        .catch(err => {
+            console.error('更新失败:', err);
+            loadOrders(currentPageNum);
+        });
+    }
+    
+    // 搜索订单
+    function searchOrders() {
+        loadOrders(1);
+    }
+    
+    // 重置搜索
+    function resetSearch() {
+        document.getElementById('searchKeyword').value = '';
+        document.getElementById('searchStatus').value = '';
+        document.getElementById('searchType').value = '';
+        document.getElementById('searchStartDate').value = '';
+        document.getElementById('searchEndDate').value = '';
+        document.getElementById('searchResultInfo').style.display = 'none';
+        loadOrders(1);
+    }
+    
+    // 工具函数：转义 HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // 工具函数：格式化日期
+    function formatDate(timestamp) {
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).replace(/\//g, '-');
+    }
+    
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        loadOrders(1);
+    });
+    </script>
     
     <?php elseif ($page == 'logs'): ?>
     <!-- 请求日志 -->
@@ -1005,7 +1290,120 @@ ${log.response.body ? JSON.stringify(log.response.body, null, 2) : '(空)'}</div
             }
         });
     });
+
+    // 订单状态变更确认
+    function confirmStatusChange(select) {
+        const form = select.form;
+        const newStatus = select.value;
+        const currentStatus = select.querySelector('option[selected]')?.value || '0';
+        
+        if (newStatus === currentStatus) {
+            return false;
+        }
+        
+        const statusNames = {
+            '0': '待支付',
+            '1': '已支付',
+            '2': '已取消'
+        };
+        
+        const confirmMsg = `确定要将订单状态改为"${statusNames[newStatus]}"吗？\n\n注意：手动修改状态会影响对账，请谨慎操作！`;
+        
+        if (confirm(confirmMsg)) {
+            return true;
+        } else {
+            // 恢复原选中状态
+            select.value = currentStatus;
+            return false;
+        }
+    }
+
+    // 打开导出弹窗
+    function openExportModal() {
+        document.getElementById('exportModal').classList.add('active');
+    }
+
+    // 关闭导出弹窗
+    function closeExportModal() {
+        document.getElementById('exportModal').classList.remove('active');
+    }
+
+    // 切换自定义日期显示
+    function toggleCustomDate() {
+        const range = document.getElementById('exportRange').value;
+        const customDateDiv = document.getElementById('customDateRange');
+        if (range === 'custom') {
+            customDateDiv.style.display = 'block';
+        } else {
+            customDateDiv.style.display = 'none';
+        }
+    }
+
+    // 执行导出
+    function exportOrders() {
+        const range = document.getElementById('exportRange').value;
+        let url = 'export_orders.php?range=' + range;
+        
+        if (range === 'custom') {
+            const startDate = document.getElementById('exportStartDate').value;
+            const endDate = document.getElementById('exportEndDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('请选择开始和结束日期');
+                return;
+            }
+            
+            url += '&start_date=' + startDate + '&end_date=' + endDate;
+        }
+        
+        window.location.href = url;
+        closeExportModal();
+    }
 </script>
+
+<!-- 导出订单弹窗 -->
+<div class="modal" id="exportModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="ri-download-line"></i> 导出订单</h3>
+            <button class="modal-close" onclick="closeExportModal()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>选择时间范围</label>
+                <select id="exportRange" class="form-control" onchange="toggleCustomDate()" style="padding: 14px 18px;">
+                    <option value="7days">最近7天</option>
+                    <option value="30days">最近30天</option>
+                    <option value="1year">最近一年</option>
+                    <option value="all">全部订单</option>
+                    <option value="custom">自定义日期</option>
+                </select>
+            </div>
+            
+            <div id="customDateRange" style="display: none; margin-top: 20px;">
+                <div class="form-group">
+                    <label>开始日期</label>
+                    <input type="date" id="exportStartDate" class="form-control" style="padding: 14px 18px;">
+                </div>
+                <div class="form-group">
+                    <label>结束日期</label>
+                    <input type="date" id="exportEndDate" class="form-control" style="padding: 14px 18px;">
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px; display: flex; gap: 12px;">
+                <button class="btn" onclick="exportOrders()" style="flex: 1;">
+                    <i class="ri-download-line"></i> 导出CSV
+                </button>
+                <button class="btn btn-outline" onclick="closeExportModal()" style="flex: 1;">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
