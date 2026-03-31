@@ -196,7 +196,7 @@ function sendNotify($order, $db, $logger) {
         'out_trade_no' => $order['out_trade_no'],
         'type' => $order['type'],
         'name' => $order['name'],
-        'money' => $order['money'],
+        'money' => $order['original_money'] ?? $order['money'],
         'trade_status' => 'TRADE_SUCCESS',
         'sign_type' => 'MD5'
     ];

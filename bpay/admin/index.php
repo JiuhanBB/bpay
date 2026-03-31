@@ -215,7 +215,8 @@ if ($page == 'test_pay' && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST
             'out_trade_no' => $outTradeNo,
             'merchant_id' => $merchantId,
             'name' => '测试支付商品',
-            'money' => $uniqueMoney,
+            'money' => $uniqueMoney,           // 微调后的金额
+            'original_money' => $money,       // 原始金额
             'type' => $payType,
             'notify_url' => 'http://' . $_SERVER['HTTP_HOST'] . '/test_notify.php',
             'return_url' => 'http://' . $_SERVER['HTTP_HOST'] . '/test_success.php'

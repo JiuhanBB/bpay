@@ -81,10 +81,13 @@ if (!$order) {
     exit;
 }
 
-// 验证金额是否匹配
-if (floatval($order['money']) != floatval($params['money'])) {
+// 验证金额是否匹配（使用原始金额验证）
+$verifyMoney = $order['original_money'] ?? $order['money'];
+if (floatval($verifyMoney) != floatval($params['money'])) {
     $logger->log('test_notify', '金额不匹配', [
         'order_money' => $order['money'],
+        'original_money' => $order['original_money'] ?? 'N/A',
+        'verify_money' => $verifyMoney,
         'notify_money' => $params['money']
     ]);
     echo 'fail';

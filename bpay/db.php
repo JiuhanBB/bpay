@@ -5,7 +5,7 @@
  */
 
 class BPayDB {
-    private $db;
+    public $db;
     public $dbFile;
     
     public function __construct($dbFile = 'bpay.db') {
