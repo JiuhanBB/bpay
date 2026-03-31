@@ -87,11 +87,18 @@ if (!$order) {
     exit;
 }
 
+// 重新查询订单获取完整数据（包括original_money）
+$order = $db->getOrderByTradeNo($order['trade_no']);
+
+// 确保 original_money 存在
+$originalMoney = $order['original_money'] ?? $order['money'];
+
 // 更新请求数据记录匹配到的订单
 $requestData['matched_order'] = [
     'trade_no' => $order['trade_no'],
     'out_trade_no' => $order['out_trade_no'],
-    'money' => $order['money']
+    'money' => $order['money'],
+    'original_money' => $originalMoney
 ];
 
 // 更新订单状态
@@ -101,7 +108,8 @@ $db->updateOrderStatus($order['trade_no'], 1);
 $logger->logIncoming('python_notify', $requestData, [
     'code' => 'success',
     'msg' => '订单匹配成功',
-    'trade_no' => $order['trade_no']
+    'trade_no' => $order['trade_no'],
+    'original_money' => $originalMoney
 ], ['step' => 'order_matched', 'status_updated' => 1]);
 
 // 发送异步通知
