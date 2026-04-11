@@ -8,7 +8,7 @@ require_once 'db.php';
 require_once 'lib/Logger.php';
 
 $logger = new Logger();
-$db = new BPayDB('bpay.db');
+$db = new BPayDB(__DIR__ . '/bpay.db');
 
 // 获取通知数据（易支付使用GET方式）
 $params = $_GET;

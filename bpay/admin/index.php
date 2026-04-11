@@ -33,7 +33,7 @@ if (empty($_COOKIE['bpay_token']) || !verifyJWT($_COOKIE['bpay_token'], $jwtSecr
     exit;
 }
 
-$db = new BPayDB('../bpay.db');
+$db = new BPayDB(__DIR__ . '/../bpay.db');
 $message = '';
 $error = '';
 

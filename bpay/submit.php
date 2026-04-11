@@ -32,7 +32,7 @@ foreach ($required as $field) {
 }
 
 // 初始化数据库
-$db = new BPayDB();
+$db = new BPayDB(__DIR__ . '/bpay.db');
 
 // 验证商户ID
 if ($params['pid'] !== '1000') {
@@ -83,13 +83,14 @@ $tradeNo = $db->generateTradeNo();
 // 获取唯一金额（自动微调避免重复）
 $baseMoney = floatval($params['money']);
 $finalMoney = $db->getUniqueMoney($baseMoney);
+$normalizedName = normalizeRequestText($params['name']);
 
 // 创建订单（保存原始金额和微调后的金额）
 $orderData = [
     'trade_no' => $tradeNo,
     'out_trade_no' => $params['out_trade_no'],
     'merchant_id' => $params['pid'],
-    'name' => $params['name'],
+    'name' => $normalizedName,
     'money' => $finalMoney,                    // 微调后的金额（用于支付）
     'original_money' => $params['money'],      // 商户原始金额（用于通知）
     'type' => $params['type'],
@@ -144,4 +145,42 @@ function jsonError($msg) {
     header('Content-Type: application/json');
     echo json_encode(['code' => 'error', 'msg' => $msg]);
     exit;
+}
+
+/**
+ * 将请求文本统一规范为 UTF-8
+ */
+function normalizeRequestText($value) {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return $value;
+    }
+
+    if (function_exists('mb_check_encoding') && mb_check_encoding($value, 'UTF-8')) {
+        return $value;
+    }
+
+    if (function_exists('mb_detect_encoding') && function_exists('mb_convert_encoding')) {
+        $encoding = mb_detect_encoding($value, ['UTF-8', 'GB18030', 'GBK', 'BIG5', 'ISO-8859-1'], true);
+        if ($encoding !== false) {
+            $converted = @mb_convert_encoding($value, 'UTF-8', $encoding);
+            if ($converted !== false && $converted !== '') {
+                return trim($converted);
+            }
+        }
+    }
+
+    foreach (['GB18030', 'GBK', 'BIG5', 'ISO-8859-1'] as $encoding) {
+        $converted = @iconv($encoding, 'UTF-8//IGNORE', $value);
+        if ($converted !== false && $converted !== '') {
+            return trim($converted);
+        }
+    }
+
+    $cleanUtf8 = @iconv('UTF-8', 'UTF-8//IGNORE', $value);
+    if ($cleanUtf8 !== false && $cleanUtf8 !== '') {
+        return trim($cleanUtf8);
+    }
+
+    return $value;
 }

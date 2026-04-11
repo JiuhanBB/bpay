@@ -33,7 +33,7 @@ function verifyInternalSign($params, $salt = 'qwer') {
 $logger = new Logger();
 
 // 初始化数据库（使用正确的路径）
-$db = new BPayDB('../bpay.db');
+$db = new BPayDB(__DIR__ . '/../bpay.db');
 
 // 获取JSON输入
 $jsonInput = file_get_contents('php://input');

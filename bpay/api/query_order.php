@@ -16,7 +16,7 @@ if (empty($tradeNo)) {
     exit;
 }
 
-$db = new BPayDB('../bpay.db');
+$db = new BPayDB(__DIR__ . '/../bpay.db');
 
 $order = $db->getOrderByTradeNo($tradeNo);
 
