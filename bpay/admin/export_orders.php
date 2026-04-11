@@ -51,7 +51,7 @@ switch ($range) {
 }
 
 // 获取订单数据
-$db = new BPayDB('../bpay.db');
+$db = new BPayDB(__DIR__ . '/../bpay.db');
 $orders = $db->getOrdersByTimeRange($startTime, $endTime);
 
 // 设置 CSV 文件名

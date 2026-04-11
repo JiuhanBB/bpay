@@ -7,7 +7,7 @@ $tradeNo = $_GET['trade_no'] ?? '';
 // 查询订单信息
 $order = null;
 if ($tradeNo) {
-    $db = new BPayDB('bpay.db');
+    $db = new BPayDB(__DIR__ . '/bpay.db');
     $order = $db->getOrderByTradeNo($tradeNo);
 }
 

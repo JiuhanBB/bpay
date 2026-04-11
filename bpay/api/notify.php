@@ -13,7 +13,7 @@ header('Content-Type: application/json');
 $logger = new Logger();
 
 // 初始化数据库（使用正确的路径）
-$db = new BPayDB('../bpay.db');
+$db = new BPayDB(__DIR__ . '/../bpay.db');
 
 // 获取通信密钥
 $notifyKey = $db->getConfig('notify_key');

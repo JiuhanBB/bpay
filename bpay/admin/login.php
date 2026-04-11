@@ -31,7 +31,7 @@ if (isset($_COOKIE['bpay_token'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     
-    $db = new BPayDB();
+    $db = new BPayDB(__DIR__ . '/../bpay.db');
     $storedPassword = $db->getConfig('admin_password');
     
     if (md5($password) === $storedPassword) {
