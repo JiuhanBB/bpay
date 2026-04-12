@@ -1,7 +1,7 @@
 <?php
 /**
  * BPay 订单查询接口
- * 用于支付页面轮询检查订单状态
+ * 支付页轮询使用；若支付宝当面付已成功，则补发易支付格式异步通知。
  */
 
 require_once '../db.php';
@@ -10,14 +10,12 @@ require_once '../lib/AlipayApp.php';
 header('Content-Type: application/json');
 
 $tradeNo = $_GET['trade_no'] ?? '';
-
-if (empty($tradeNo)) {
+if ($tradeNo === '') {
     echo json_encode(['code' => 'error', 'msg' => '订单号不能为空']);
     exit;
 }
 
 $db = new BPayDB(__DIR__ . '/../bpay.db');
-
 $order = $db->getOrderByTradeNo($tradeNo);
 
 if (!$order) {
@@ -25,8 +23,7 @@ if (!$order) {
     exit;
 }
 
-// 如果订单已支付或已取消，直接返回
-if ($order['status'] == 1) {
+if ((int) $order['status'] === 1) {
     echo json_encode([
         'code' => 'success',
         'status' => 1,
@@ -38,8 +35,7 @@ if ($order['status'] == 1) {
     exit;
 }
 
-// 如果订单已取消
-if ($order['status'] == 2) {
+if ((int) $order['status'] === 2) {
     echo json_encode([
         'code' => 'success',
         'status' => 2,
@@ -50,8 +46,7 @@ if ($order['status'] == 2) {
     exit;
 }
 
-// 如果是支付宝订单且配置了当面付，主动查询支付宝接口
-if ($order['type'] == 'alipay') {
+if ($order['type'] === 'alipay') {
     $appId = $db->getConfig('alipay_app_id');
     $privateKey = $db->getConfig('alipay_private_key');
 
@@ -59,11 +54,8 @@ if ($order['type'] == 'alipay') {
         $alipayApp = new AlipayApp($appId, $privateKey);
         $alipayResult = $alipayApp->queryOrder($order['out_trade_no']);
 
-        if ($alipayResult && in_array($alipayResult['status'], ['TRADE_SUCCESS', 'TRADE_FINISHED'])) {
-            // 支付成功，更新订单状态
+        if ($alipayResult && in_array($alipayResult['status'], ['TRADE_SUCCESS', 'TRADE_FINISHED'], true)) {
             $db->updateOrderStatus($order['trade_no'], 1);
-
-            // 发送异步通知
             sendNotify($db, $order);
 
             echo json_encode([
@@ -79,7 +71,6 @@ if ($order['type'] == 'alipay') {
     }
 }
 
-// 返回未支付状态
 echo json_encode([
     'code' => 'success',
     'status' => 0,
@@ -88,40 +79,65 @@ echo json_encode([
     'money' => $order['money']
 ]);
 
-/**
- * 发送异步通知
- */
 function sendNotify($db, $order) {
     $notifyUrl = $order['notify_url'];
     if (empty($notifyUrl)) {
-        return;
+        return ['success' => false, 'error' => 'notify_url is empty'];
     }
 
     $merchantKey = $db->getConfig('merchant_key');
-
-    $notifyData = [
+    $params = [
+        'pid' => $order['merchant_id'],
         'trade_no' => $order['trade_no'],
         'out_trade_no' => $order['out_trade_no'],
-        'money' => $order['money'],
         'type' => $order['type'],
-        'status' => 1,
-        'time' => time()
+        'name' => $order['name'],
+        'money' => $order['original_money'] ?? $order['money'],
+        'trade_status' => 'TRADE_SUCCESS',
+        'sign_type' => 'MD5'
     ];
+    $params['sign'] = generateYiZhiFuSign($params, $merchantKey);
 
-    // 生成签名
-    ksort($notifyData);
-    $signStr = http_build_query($notifyData) . '&key=' . $merchantKey;
-    $notifyData['sign'] = md5($signStr);
+    $url = $notifyUrl . '?' . http_build_query($params);
 
-    // 异步发送通知
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $notifyUrl);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($notifyData));
+    curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    curl_exec($ch);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
+
+    if ($curlError) {
+        return ['success' => false, 'error' => 'CURL错误: ' . $curlError];
+    }
+
+    if ($httpCode === 200) {
+        $db->updateNotifyStatus($order['trade_no'], 1);
+    }
+
+    return [
+        'success' => ($httpCode === 200),
+        'error' => $httpCode !== 200 ? 'HTTP ' . $httpCode : '',
+        'body' => $response
+    ];
+}
+
+function generateYiZhiFuSign($params, $key) {
+    ksort($params);
+
+    $string = '';
+    foreach ($params as $k => $v) {
+        if ($v !== '' && $v !== null && $k !== 'sign' && $k !== 'sign_type') {
+            $string .= $k . '=' . $v . '&';
+        }
+    }
+
+    return md5(rtrim($string, '&') . $key);
 }
