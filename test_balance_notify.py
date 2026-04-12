@@ -1,6 +1,6 @@
 import hashlib
 from datetime import datetime
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit
 
 import requests
 
@@ -26,15 +26,15 @@ def normalize_notify_url(raw_value: str) -> str:
     if not parsed.scheme or not parsed.netloc:
         raise ValueError("请输入完整的 http:// 或 https:// 地址")
 
-    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, "", ""))
+    return notify_url
 
 
-def build_sign(params: dict[str, str]) -> str:
+def build_sign(payload: dict[str, str]) -> str:
     items = []
-    for key in sorted(params.keys()):
+    for key in sorted(payload.keys()):
         if key == "sign":
             continue
-        value = params[key]
+        value = payload[key]
         if value is not None and value != "":
             items.append(f"{key}={value}")
     sign_string = "&".join(items) + "qwer"
@@ -49,29 +49,28 @@ def main():
         )
     )
     amount = prompt("到账金额", "0.01")
-    payment_type = prompt("支付方式(alipay/wxpay，可留空)", "alipay").strip().lower()
+    payment_type = prompt("支付方式标识", "alipay")
     change_time = prompt("到账时间", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     current_balance = prompt("当前余额(可留空)", "")
 
     payload = {
         "change_amount": f"{float(amount):.2f}",
         "change_time": change_time,
+        "payment_type": payment_type,
     }
-    if payment_type:
-        payload["payment_type"] = payment_type
-    if current_balance:
+    if current_balance != "":
         payload["current_balance"] = current_balance
 
     payload["sign"] = build_sign(payload)
 
-    print("\n即将提交到:")
+    print("\n请求地址:")
     print(notify_url)
-    print("\nJSON 参数:")
+    print("\nJSON 载荷:")
     print(payload)
 
     response = requests.post(notify_url, json=payload, timeout=15)
 
-    print(f"\n响应状态: {response.status_code}")
+    print(f"\nHTTP 状态: {response.status_code}")
     print("响应内容:")
     print(response.text)
 
