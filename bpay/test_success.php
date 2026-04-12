@@ -3,12 +3,21 @@ require_once 'db.php';
 
 // 获取订单号
 $tradeNo = $_GET['trade_no'] ?? '';
+$outTradeNo = $_GET['out_trade_no'] ?? '';
 
 // 查询订单信息
 $order = null;
-if ($tradeNo) {
+if ($tradeNo || $outTradeNo) {
     $db = new BPayDB(__DIR__ . '/bpay.db');
-    $order = $db->getOrderByTradeNo($tradeNo);
+    if ($tradeNo) {
+        $order = $db->getOrderByTradeNo($tradeNo);
+    }
+    if (!$order && $outTradeNo) {
+        $order = $db->getOrderByOutTradeNo($outTradeNo);
+        if ($order) {
+            $tradeNo = $order['trade_no'];
+        }
+    }
 }
 
 // 如果没有找到订单，显示默认信息
@@ -150,7 +159,7 @@ $payTime = $order ? ($order['pay_time'] ? date('Y-m-d H:i:s', $order['pay_time']
             </div>
             <div class="info-item">
                 <span class="info-label">订单号</span>
-                <span class="info-value"><?php echo htmlspecialchars($tradeNo ?: 'N/A'); ?></span>
+                <span class="info-value"><?php echo htmlspecialchars($tradeNo ?: ($outTradeNo ?: 'N/A')); ?></span>
             </div>
             <div class="info-item">
                 <span class="info-label">支付时间</span>

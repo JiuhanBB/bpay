@@ -195,60 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['wxpay_qrcode'])) {
     }
 }
 
-// 处理测试订单生成（必须在header输出前）
-if ($page == 'test_pay' && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_order'])) {
-    $money = floatval($_POST['money'] ?? 0);
-    $payType = $_POST['pay_type'] ?? 'alipay';
-
-    if ($money > 0) {
-        // 获取唯一金额（自动微调避免重复）
-        $uniqueMoney = $db->getUniqueMoney($money);
-
-        // 生成测试订单号（以TEST开头）
-        $tradeNo = 'TEST' . date('YmdHis') . rand(1000, 9999);
-        $outTradeNo = 'TEST_OUT_' . date('YmdHis') . rand(1000, 9999);
-        $merchantId = $db->getConfig('merchant_id') ?: 'TEST_MERCHANT';
-
-        // 创建订单数据 - 使用真实的notify_url和return_url
-        $orderData = [
-            'trade_no' => $tradeNo,
-            'out_trade_no' => $outTradeNo,
-            'merchant_id' => $merchantId,
-            'name' => '测试支付商品',
-            'money' => $uniqueMoney,           // 微调后的金额
-            'original_money' => $money,       // 原始金额
-            'type' => $payType,
-            'notify_url' => 'http://' . $_SERVER['HTTP_HOST'] . '/test_notify.php',
-            'return_url' => 'http://' . $_SERVER['HTTP_HOST'] . '/test_success.php'
-        ];
-        
-        // 保存订单到数据库
-        try {
-            $result = $db->createOrder($orderData);
-            if ($result) {
-                // 记录日志
-                $logger = new Logger();
-                $logger->log('incoming', '生成测试订单', [
-                    'trade_no' => $tradeNo,
-                    'money' => $money,
-                    'type' => $payType
-                ]);
-                
-                // 跳转到支付页面
-                header('Location: ../pay.php?trade_no=' . $tradeNo);
-                exit;
-            } else {
-                $error = '订单创建失败：数据库插入返回false';
-            }
-        } catch (Exception $e) {
-            $error = '订单创建失败：' . $e->getMessage();
-        }
-    } else {
-        $error = '请输入有效的金额';
-    }
-}
-
-// 订单状态更新已改为 AJAX 方式，无需表单提交处理
+// 测试订单已改为前端直接调用 submit.php，这里不再通过后台直写数据库创建订单
 
 // 获取配置
 $merchantId = $db->getConfig('merchant_id');
