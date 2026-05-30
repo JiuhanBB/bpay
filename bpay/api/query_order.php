@@ -1,11 +1,12 @@
 <?php
 /**
  * BPay 订单查询接口
- * 支付页轮询使用；若支付宝当面付已成功，则补发易支付格式异步通知。
+ * 支付页轮询使用；支持查询支付宝当面付和微信JSAPI支付状态。
  */
 
 require_once '../db.php';
 require_once '../lib/AlipayApp.php';
+require_once '../lib/WechatJsapi.php';
 
 header('Content-Type: application/json');
 
@@ -55,6 +56,31 @@ if ($order['type'] === 'alipay') {
         $alipayResult = $alipayApp->queryOrder($order['out_trade_no']);
 
         if ($alipayResult && in_array($alipayResult['status'], ['TRADE_SUCCESS', 'TRADE_FINISHED'], true)) {
+            $db->updateOrderStatus($order['trade_no'], 1);
+            sendNotify($db, $order);
+
+            echo json_encode([
+                'code' => 'success',
+                'status' => 1,
+                'trade_no' => $order['trade_no'],
+                'out_trade_no' => $order['out_trade_no'],
+                'money' => $order['money'],
+                'pay_time' => date('Y-m-d H:i:s')
+            ]);
+            exit;
+        }
+    }
+} elseif ($order['type'] === 'wxpay') {
+    $wxAppId = $db->getConfig('wechat_jsapi_appid');
+    $wxAppSecret = $db->getConfig('wechat_jsapi_appsecret');
+    $wxMchId = $db->getConfig('wechat_jsapi_mchid');
+    $wxKey = $db->getConfig('wechat_jsapi_key');
+
+    if (!empty($wxAppId) && !empty($wxAppSecret) && !empty($wxMchId) && !empty($wxKey)) {
+        $wechat = new WechatJsapi($wxAppId, $wxAppSecret, $wxMchId, $wxKey);
+        $wxResult = $wechat->queryOrder($order['out_trade_no']);
+
+        if ($wxResult['success'] && $wxResult['trade_state'] === 'SUCCESS') {
             $db->updateOrderStatus($order['trade_no'], 1);
             sendNotify($db, $order);
 

@@ -274,6 +274,44 @@ class AlipayApp {
     }
 
     /**
+     * 生成支付宝WAP支付跳转URL
+     * 用于移动端浏览器直接跳转到支付宝收银台
+     */
+    public function createWapPayUrl($orderId, $amount, $subject, $returnUrl, $notifyUrl = '', $body = '') {
+        $subject = $this->normalizeText($subject, '订单支付-' . $orderId);
+        $body = $this->normalizeText($body ?: $subject, $subject);
+
+        $bizContent = [
+            'out_trade_no' => $orderId,
+            'total_amount' => number_format((float) $amount, 2, '.', ''),
+            'subject' => $subject,
+            'body' => $body,
+            'product_code' => 'QUICK_WAP_WAY',
+            'timeout_express' => '5m',
+        ];
+
+        $params = [
+            'app_id' => $this->appId,
+            'method' => 'alipay.trade.wap.pay',
+            'charset' => 'utf-8',
+            'sign_type' => 'RSA2',
+            'timestamp' => date('Y-m-d H:i:s'),
+            'version' => '1.0',
+            'return_url' => $returnUrl,
+            'notify_url' => $notifyUrl ?: $returnUrl,
+            'biz_content' => json_encode($bizContent, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ];
+
+        $sign = $this->generateSign($params);
+        if ($sign === false) {
+            return '';
+        }
+        $params['sign'] = $sign;
+
+        return $this->gatewayUrl . '?' . http_build_query($params);
+    }
+
+    /**
      * 查询订单支付结果
      *
      * @param string $orderId 订单号

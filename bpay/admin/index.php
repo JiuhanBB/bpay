@@ -149,6 +149,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_alipay_config'
     $message = '支付宝当面付配置已保存';
 }
 
+// 处理微信JSAPI配置
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_wechat_jsapi_config'])) {
+    $wxAppId = trim($_POST['wechat_jsapi_appid'] ?? '');
+    $wxAppSecret = trim($_POST['wechat_jsapi_appsecret'] ?? '');
+    $wxMchId = trim($_POST['wechat_jsapi_mchid'] ?? '');
+    $wxKey = trim($_POST['wechat_jsapi_key'] ?? '');
+
+    $db->setConfig('wechat_jsapi_appid', $wxAppId);
+    $db->setConfig('wechat_jsapi_appsecret', $wxAppSecret);
+    $db->setConfig('wechat_jsapi_mchid', $wxMchId);
+    $db->setConfig('wechat_jsapi_key', $wxKey);
+
+    $message = '微信JSAPI配置已保存';
+}
+
 // 处理当面付JSON配置导入
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['alipay_json_config'])) {
     $jsonContent = file_get_contents($_FILES['alipay_json_config']['tmp_name']);
@@ -279,6 +294,10 @@ include 'header.php';
             <a href="?page=alipay" class="nav-item <?php echo $page == 'alipay' ? 'active' : ''; ?>">
                 <i class="ri-alipay-line"></i>
                 <span>支付宝配置</span>
+            </a>
+            <a href="?page=wechat" class="nav-item <?php echo $page == 'wechat' ? 'active' : ''; ?>">
+                <i class="ri-wechat-pay-line"></i>
+                <span>微信配置</span>
             </a>
             <a href="?page=qrcode" class="nav-item <?php echo $page == 'qrcode' ? 'active' : ''; ?>">
                 <i class="ri-qr-code-line"></i>
@@ -1433,8 +1452,8 @@ sign = md5("money=1.00&name=测试商品&out_trade_no=ORDER123&pid=10001&type=al
     <?php elseif ($page == 'alipay'): ?>
     <!-- 支付宝当面付配置 -->
     <div class="page-header">
-        <h2>支付宝当面付配置</h2>
-        <p>配置支付宝开放平台应用，支持当面付功能</p>
+        <h2>支付宝官渠道配置</h2>
+        <p>配置支付宝开放平台应用，支持当面付（桌面端）和WAP支付（移动端）</p>
     </div>
 
     <?php
@@ -1488,14 +1507,14 @@ sign = md5("money=1.00&name=测试商品&out_trade_no=ORDER123&pid=10001&type=al
             <div class="form-group">
                 <label>支付方式</label>
                 <select name="alipay_pay_mode" class="form-control">
-                    <option value="auto" <?php echo $alipayPayMode == 'auto' ? 'selected' : ''; ?>>自动选择（优先当面付）</option>
-                    <option value="face" <?php echo $alipayPayMode == 'face' ? 'selected' : ''; ?>>仅当面付</option>
-                    <option value="qrcode" <?php echo $alipayPayMode == 'qrcode' ? 'selected' : ''; ?>>仅收款码</option>
+                    <option value="auto" <?php echo $alipayPayMode == 'auto' ? 'selected' : ''; ?>>自动选择（官渠道优先）</option>
+                    <option value="face" <?php echo $alipayPayMode == 'face' ? 'selected' : ''; ?>>仅官渠道</option>
+                    <option value="qrcode" <?php echo $alipayPayMode == 'qrcode' ? 'selected' : ''; ?>>仅码渠道</option>
                 </select>
                 <small style="color: var(--text-muted);">
-                    自动选择：配置了当面付就用当面付，没配置就用收款码<br>
-                    仅当面付：只使用支付宝当面付API生成二维码<br>
-                    仅收款码：只使用上传的收款码图片
+                    自动选择：配置了官渠道就用官渠道，没配置或失败则用码渠道<br>
+                    仅官渠道：只使用支付宝当面付（桌面端）或WAP支付（移动端）<br>
+                    仅码渠道：只使用上传的支付宝收款码
                 </small>
             </div>
             <button type="submit" name="update_alipay_config" class="btn">
@@ -1522,10 +1541,101 @@ sign = md5("money=1.00&name=测试商品&out_trade_no=ORDER123&pid=10001&type=al
                 <li>复制应用ID、应用私钥、支付宝公钥到上方表单</li>
             </ol>
 
-            <p style="margin-top: 16px;"><strong>3. 收款码 vs 当面付</strong></p>
+            <p style="margin-top: 16px;"><strong>3. 渠道说明</strong></p>
             <ul style="margin-left: 20px; margin-top: 8px;">
-                <li><strong>收款码</strong>：上传静态收款码图片，通过监控软件检测收款</li>
-                <li><strong>当面付</strong>：动态生成订单二维码，通过API轮询查询状态</li>
+                <li><strong>码渠道（收款码）</strong>：上传静态收款码图片，通过监控软件检测收款</li>
+                <li><strong>官渠道（当面付/WAP）</strong>：桌面端显示付款二维码，移动端直接跳转支付宝收银台</li>
+                <li>配置了官渠道则优先使用官渠道，未配置或失败则自动使用码渠道</li>
+            </ul>
+        </div>
+    </div>
+
+    <?php elseif ($page == 'wechat'): ?>
+    <!-- 微信JSAPI配置 -->
+    <div class="page-header">
+        <h2>微信JSAPI配置</h2>
+        <p>配置微信JSAPI支付，PC网站扫码后在微信内调起支付</p>
+    </div>
+
+    <?php
+    $wxJsapiAppId = $db->getConfig('wechat_jsapi_appid') ?: '';
+    $wxJsapiAppSecret = $db->getConfig('wechat_jsapi_appsecret') ?: '';
+    $wxJsapiMchId = $db->getConfig('wechat_jsapi_mchid') ?: '';
+    $wxJsapiKey = $db->getConfig('wechat_jsapi_key') ?: '';
+    $hasWechatJsapi = $wxJsapiAppId !== '' && $wxJsapiAppSecret !== '' && $wxJsapiMchId !== '' && $wxJsapiKey !== '';
+    ?>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="stat-card">
+            <div class="stat-icon <?php echo $hasWechatJsapi ? 'green' : 'orange'; ?>">
+                <i class="ri-<?php echo $hasWechatJsapi ? 'checkbox-circle' : 'error-warning'; ?>-line"></i>
+            </div>
+            <div class="stat-value" style="font-size: 16px;"><?php echo $hasWechatJsapi ? '已配置' : '未配置'; ?></div>
+            <div class="stat-label">微信JSAPI状态</div>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <div class="card-header">
+            <h3 class="card-title">手动配置</h3>
+        </div>
+        <form method="POST">
+            <div class="form-group">
+                <label>AppId</label>
+                <input type="text" name="wechat_jsapi_appid" class="form-control" value="<?php echo htmlspecialchars($wxJsapiAppId); ?>" placeholder="JSAPI应用的AppId">
+                <small style="color: var(--text-muted);">微信支付商户平台 → 产品中心 → JSAPI支付 → 关联应用中获取</small>
+            </div>
+            <div class="form-group">
+                <label>AppSecret</label>
+                <input type="text" name="wechat_jsapi_appsecret" class="form-control" value="<?php echo htmlspecialchars($wxJsapiAppSecret); ?>" placeholder="JSAPI应用的AppSecret">
+                <small style="color: var(--text-muted);">同上，关联应用详情中获取</small>
+            </div>
+            <div class="form-group">
+                <label>微信商户号 (MchId)</label>
+                <input type="text" name="wechat_jsapi_mchid" class="form-control" value="<?php echo htmlspecialchars($wxJsapiMchId); ?>" placeholder="微信支付商户号">
+                <small style="color: var(--text-muted);">微信支付商户平台的商户号</small>
+            </div>
+            <div class="form-group">
+                <label>API密钥 (Key)</label>
+                <input type="text" name="wechat_jsapi_key" class="form-control" value="<?php echo htmlspecialchars($wxJsapiKey); ?>" placeholder="API密钥">
+                <small style="color: var(--text-muted);">微信支付商户平台 → 账户中心 → API安全 → 设置API密钥（32位）</small>
+            </div>
+            <button type="submit" name="update_wechat_jsapi_config" class="btn">
+                <i class="ri-save-line"></i> 保存配置
+            </button>
+        </form>
+    </div>
+
+    <div class="content-card">
+        <div class="card-header">
+            <h3 class="card-title">配置说明</h3>
+        </div>
+        <div style="color: var(--text-muted); line-height: 1.8;">
+            <p><strong>1. 前置条件</strong></p>
+            <p>需要微信支付商户号 + 在商户平台开通JSAPI支付</p>
+
+            <p style="margin-top: 16px;"><strong>2. 配置步骤</strong></p>
+            <ol style="margin-left: 20px; margin-top: 8px;">
+                <li>登录微信支付商户平台 (pay.weixin.qq.com)</li>
+                <li>在"产品中心 → JSAPI支付"中开通</li>
+                <li>在"产品中心 → AppID账号管理"中关联一个AppId（需已认证的公众号或网站应用）</li>
+                <li>在"账户中心"获取商户号</li>
+                <li>在"账户中心 → API安全"设置API密钥</li>
+                <li>在"产品中心 → JSAPI支付"中设置支付授权目录为当前网站域名</li>
+            </ol>
+
+            <p style="margin-top: 16px;"><strong>3. 使用流程</strong></p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+                <li>PC上打开收银台 → 显示当前页面的二维码</li>
+                <li>用户手机微信扫码 → 在微信内打开收银台</li>
+                <li>自动获取openid → 调起微信支付 → 完成</li>
+            </ul>
+
+            <p style="margin-top: 16px;"><strong>4. 渠道说明</strong></p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+                <li><strong>码渠道</strong>：上传静态收款码，通过监控软件检测收款</li>
+                <li><strong>官渠道（微信JSAPI）</strong>：配置后，PC显示引导码，微信内直接调起支付</li>
+                <li>配置了官渠道则优先使用官渠道，未配置则自动使用码渠道</li>
             </ul>
         </div>
     </div>
