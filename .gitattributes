@@ -1,0 +1,5 @@
+*.deb filter=lfs diff=lfs merge=lfs -text
+Linux端监控/Umi-OCR/UmiOCR-data/.embeddable/** filter=lfs diff=lfs merge=lfs -text
+Linux端监控/Umi-OCR/UmiOCR-data/plugins/** filter=lfs diff=lfs merge=lfs -text
+win端监控/Umi-OCR/UmiOCR-data/plugins/** filter=lfs diff=lfs merge=lfs -text
+win端监控/Umi-OCR/UmiOCR-data/site-packages/** filter=lfs diff=lfs merge=lfs -text

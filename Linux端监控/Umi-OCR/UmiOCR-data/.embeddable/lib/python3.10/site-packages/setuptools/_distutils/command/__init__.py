@@ -1,31 +1,3 @@
-"""distutils.command
-
-Package containing implementation of all the standard Distutils
-commands."""
-
-__all__ = ['build',
-           'build_py',
-           'build_ext',
-           'build_clib',
-           'build_scripts',
-           'clean',
-           'install',
-           'install_lib',
-           'install_headers',
-           'install_scripts',
-           'install_data',
-           'sdist',
-           'register',
-           'bdist',
-           'bdist_dumb',
-           'bdist_rpm',
-           'bdist_wininst',
-           'check',
-           'upload',
-           # These two are reserved for future use:
-           #'bdist_sdux',
-           #'bdist_pkgtool',
-           # Note:
-           # bdist_packager is not included because it only provides
-           # an abstract base class
-          ]
+version https://git-lfs.github.com/spec/v1
+oid sha256:d9303eae5343973788f9cb1b5875c58c60fcb8e62a00b31fc963a14f8f670ba8
+size 799

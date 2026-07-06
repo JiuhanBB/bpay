@@ -1,36 +1,3 @@
-"""Fixer for reload().
-
-reload(s) -> importlib.reload(s)"""
-
-# Local imports
-from .. import fixer_base
-from ..fixer_util import ImportAndCall, touch_import
-
-
-class FixReload(fixer_base.BaseFix):
-    BM_compatible = True
-    order = "pre"
-
-    PATTERN = """
-    power< 'reload'
-           trailer< lpar='('
-                    ( not(arglist | argument<any '=' any>) obj=any
-                      | obj=arglist<(not argument<any '=' any>) any ','> )
-                    rpar=')' >
-           after=any*
-    >
-    """
-
-    def transform(self, node, results):
-        if results:
-            # I feel like we should be able to express this logic in the
-            # PATTERN above but I don't know how to do it so...
-            obj = results['obj']
-            if obj:
-                if (obj.type == self.syms.argument and
-                    obj.children[0].value in {'**', '*'}):
-                    return  # Make no change.
-        names = ('importlib', 'reload')
-        new = ImportAndCall(node, results, names)
-        touch_import(None, 'importlib', node)
-        return new
+version https://git-lfs.github.com/spec/v1
+oid sha256:17570148167e43b2155b6e1c814a3cca9e3ef53750c504932a9c7d62a8b68a3f
+size 1081

@@ -1,11 +1,3 @@
-This directory contains the Distutils package.
-
-There's a full documentation available at:
-
-    https://docs.python.org/distutils/
-
-The Distutils-SIG web page is also a good starting point:
-
-    https://www.python.org/sigs/distutils-sig/
-
-$Id$
+version https://git-lfs.github.com/spec/v1
+oid sha256:8d19071886238eda514e96a7ab1c17d6d8c26ae628c4ddbc8ecc5329fd9d8000
+size 244

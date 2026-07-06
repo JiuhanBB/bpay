@@ -1,18 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-requests.certs
-~~~~~~~~~~~~~~
-
-This module returns the preferred default CA certificate bundle. There is
-only one — the one from the certifi package.
-
-If you are packaging Requests, e.g., for a Linux distribution or a managed
-environment, you can change the definition of where() to return a separately
-packaged CA bundle.
-"""
-from pip._vendor.certifi import where
-
-if __name__ == '__main__':
-    print(where())
+version https://git-lfs.github.com/spec/v1
+oid sha256:9d7455abd0ed1a6bffd4061bc234eef54ae001c749bf4e59be435e6a82ce6716
+size 465

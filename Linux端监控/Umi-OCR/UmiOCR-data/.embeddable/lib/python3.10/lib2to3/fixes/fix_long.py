@@ -1,19 +1,3 @@
-# Copyright 2006 Google, Inc. All Rights Reserved.
-# Licensed to PSF under a Contributor Agreement.
-
-"""Fixer that turns 'long' into 'int' everywhere.
-"""
-
-# Local imports
-from lib2to3 import fixer_base
-from lib2to3.fixer_util import is_probably_builtin
-
-
-class FixLong(fixer_base.BaseFix):
-    BM_compatible = True
-    PATTERN = "'long'"
-
-    def transform(self, node, results):
-        if is_probably_builtin(node):
-            node.value = "int"
-            node.changed()
+version https://git-lfs.github.com/spec/v1
+oid sha256:306b80e0a72c0d16dd934b7d51ab0c9a4224f83be5d6cbad8a7158a0a5d73551
+size 476

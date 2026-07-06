@@ -1,22 +1,3 @@
-# Copyright (C) 2002-2006 Python Software Foundation
-# Author: Barry Warsaw
-# Contact: email-sig@python.org
-
-"""Base class for MIME type messages that are not multipart."""
-
-__all__ = ['MIMENonMultipart']
-
-from email import errors
-from email.mime.base import MIMEBase
-
-
-
-class MIMENonMultipart(MIMEBase):
-    """Base class for MIME non-multipart type messages."""
-
-    def attach(self, payload):
-        # The public API prohibits attaching multiple subparts to MIMEBase
-        # derived subtypes since none of them are, by definition, of content
-        # type multipart/*
-        raise errors.MultipartConversionError(
-            'Cannot attach additional subparts to non-multipart/*')
+version https://git-lfs.github.com/spec/v1
+oid sha256:1f6fdedb5ba3e0a698bf33d77e329fc4cf2ab4305474b6ae23c1bc0f99daaf7a
+size 691

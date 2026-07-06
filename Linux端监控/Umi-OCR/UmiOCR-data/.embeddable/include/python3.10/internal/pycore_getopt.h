@@ -1,22 +1,3 @@
-#ifndef Py_INTERNAL_PYGETOPT_H
-#define Py_INTERNAL_PYGETOPT_H
-
-#ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
-#endif
-
-extern int _PyOS_opterr;
-extern Py_ssize_t _PyOS_optind;
-extern const wchar_t *_PyOS_optarg;
-
-extern void _PyOS_ResetGetOpt(void);
-
-typedef struct {
-    const wchar_t *name;
-    int has_arg;
-    int val;
-} _PyOS_LongOption;
-
-extern int _PyOS_GetOpt(Py_ssize_t argc, wchar_t * const *argv, int *longindex);
-
-#endif /* !Py_INTERNAL_PYGETOPT_H */
+version https://git-lfs.github.com/spec/v1
+oid sha256:e93393067b66b557b0300e05c10ee904d4be54cadfb214c5328a9225ad199452
+size 490

@@ -1,14 +1,3 @@
-#ifndef Py_BLTINMODULE_H
-#define Py_BLTINMODULE_H
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-PyAPI_DATA(PyTypeObject) PyFilter_Type;
-PyAPI_DATA(PyTypeObject) PyMap_Type;
-PyAPI_DATA(PyTypeObject) PyZip_Type;
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* !Py_BLTINMODULE_H */
+version https://git-lfs.github.com/spec/v1
+oid sha256:1b5101b4b85409fd910032713906800bbb83580503036469c2a60ac8e80b8f72
+size 264

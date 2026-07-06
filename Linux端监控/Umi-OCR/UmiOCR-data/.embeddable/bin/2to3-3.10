@@ -1,5 +1,3 @@
-#!/usr/bin/python3.10
-import sys
-from lib2to3.main import main
-
-sys.exit(main("lib2to3.fixes"))
+version https://git-lfs.github.com/spec/v1
+oid sha256:3f35a6fe7ca9461b40c3c90d44934ba631759b47f5bf0039468b05ff2b2b684c
+size 96

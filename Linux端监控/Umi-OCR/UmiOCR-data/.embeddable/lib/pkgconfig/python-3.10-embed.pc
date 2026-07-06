@@ -1,13 +1,3 @@
-# See: man pkg-config
-prefix=/usr
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
-
-Name: Python
-Description: Embed Python into an application
-Requires:
-Version: 3.10
-Libs.private: -lcrypt -lpthread -ldl  -lutil -lm
-Libs: -L${libdir} -lpython3.10
-Cflags: -I${includedir}/python3.10
+version https://git-lfs.github.com/spec/v1
+oid sha256:55e3b021da059f15ab4548b87f7ba3c77b393a59fad5e01ebe9edd0527fcfeae
+size 310

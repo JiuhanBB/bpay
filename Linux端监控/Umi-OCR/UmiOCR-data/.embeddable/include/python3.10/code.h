@@ -1,20 +1,3 @@
-/* Definitions for bytecode */
-
-#ifndef Py_CODE_H
-#define Py_CODE_H
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct PyCodeObject PyCodeObject;
-
-#ifndef Py_LIMITED_API
-#  define Py_CPYTHON_CODE_H
-#  include  "cpython/code.h"
-#  undef Py_CPYTHON_CODE_H
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* !Py_CODE_H */
+version https://git-lfs.github.com/spec/v1
+oid sha256:de21eeb3ae7f1314e296727bd6db61cfe496e177a230ed75071e7af5b02d88b5
+size 318

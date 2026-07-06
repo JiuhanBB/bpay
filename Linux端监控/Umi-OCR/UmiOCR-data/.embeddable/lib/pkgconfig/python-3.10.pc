@@ -1,13 +1,3 @@
-# See: man pkg-config
-prefix=/usr
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
-
-Name: Python
-Description: Build a C extension for Python
-Requires:
-Version: 3.10
-Libs.private: -lcrypt -lpthread -ldl  -lutil -lm
-Libs:
-Cflags: -I${includedir}/python3.10
+version https://git-lfs.github.com/spec/v1
+oid sha256:4068849d968eba0139b3fecc52ac099bafb056624b390c3ffde0d219b67ec969
+size 283

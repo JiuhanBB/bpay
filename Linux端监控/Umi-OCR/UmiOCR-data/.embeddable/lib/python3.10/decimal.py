@@ -1,11 +1,3 @@
-
-try:
-    from _decimal import *
-    from _decimal import __doc__
-    from _decimal import __version__
-    from _decimal import __libmpdec_version__
-except ImportError:
-    from _pydecimal import *
-    from _pydecimal import __doc__
-    from _pydecimal import __version__
-    from _pydecimal import __libmpdec_version__
+version https://git-lfs.github.com/spec/v1
+oid sha256:000c00bad31d126b054c6ec7f3e02b27c0f9a4d579f987d3c4f879cee1bacb81
+size 320

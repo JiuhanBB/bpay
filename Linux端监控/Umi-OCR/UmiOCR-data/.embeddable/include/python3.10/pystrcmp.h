@@ -1,23 +1,3 @@
-#ifndef Py_STRCMP_H
-#define Py_STRCMP_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-PyAPI_FUNC(int) PyOS_mystrnicmp(const char *, const char *, Py_ssize_t);
-PyAPI_FUNC(int) PyOS_mystricmp(const char *, const char *);
-
-#ifdef MS_WINDOWS
-#define PyOS_strnicmp strnicmp
-#define PyOS_stricmp stricmp
-#else
-#define PyOS_strnicmp PyOS_mystrnicmp
-#define PyOS_stricmp PyOS_mystricmp
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* !Py_STRCMP_H */
+version https://git-lfs.github.com/spec/v1
+oid sha256:f401d8338fb6ecf5f12768ee95cd09c262f880b2ee522ca344b890dbdcde4c88
+size 436

@@ -1,11 +1,3 @@
-#! /bin/bash -e
-
-# 获取当前脚本路径
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
-# 获取PaddleOCR-json路径
-EXE_LOCATION="$SCRIPT_DIR/bin/PaddleOCR-json"
-LIB_LOCATION="$SCRIPT_DIR/lib/"
-
-# 运行PaddleOCR-json
-LD_LIBRARY_PATH="$LIB_LOCATION" "$EXE_LOCATION" -models_path="$SCRIPT_DIR/models" "$@"
+version https://git-lfs.github.com/spec/v1
+oid sha256:6a9209fb80c3194e0ccd345a1a29daef5c7ac7978da801963fb8eea6c0bf24ea
+size 343

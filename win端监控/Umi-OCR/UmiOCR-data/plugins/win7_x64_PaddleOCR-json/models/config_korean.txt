@@ -1,13 +1,3 @@
-# 韩文 PP-OCR v3
-
-# det 检测模型库
-det_model_dir models/ch_PP-OCRv3_det_infer
-
-# cls 方向分类器库
-cls_model_dir models/ch_ppocr_mobile_v2.0_cls_infer
-
-# rec 识别模型库
-rec_model_dir models/korean_PP-OCRv3_rec_infer
-
-# 字典路径
-rec_char_dict_path models/dict_korean.txt
+version https://git-lfs.github.com/spec/v1
+oid sha256:68fa7166e0f69cad039fd98327f77605376475587f30925895f83c4478e09412
+size 302

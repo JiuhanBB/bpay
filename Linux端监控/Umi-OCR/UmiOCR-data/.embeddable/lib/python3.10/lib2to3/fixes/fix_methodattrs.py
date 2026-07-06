@@ -1,24 +1,3 @@
-"""Fix bound method attributes (method.im_? -> method.__?__).
-"""
-# Author: Christian Heimes
-
-# Local imports
-from .. import fixer_base
-from ..fixer_util import Name
-
-MAP = {
-    "im_func" : "__func__",
-    "im_self" : "__self__",
-    "im_class" : "__self__.__class__"
-    }
-
-class FixMethodattrs(fixer_base.BaseFix):
-    BM_compatible = True
-    PATTERN = """
-    power< any+ trailer< '.' attr=('im_func' | 'im_self' | 'im_class') > any* >
-    """
-
-    def transform(self, node, results):
-        attr = results["attr"][0]
-        new = MAP[attr.value]
-        attr.replace(Name(new, prefix=attr.prefix))
+version https://git-lfs.github.com/spec/v1
+oid sha256:8d60082f98ce52ee4955099bfd447cbadfa0e9b24ccb8d135cecc833168d44e8
+size 606

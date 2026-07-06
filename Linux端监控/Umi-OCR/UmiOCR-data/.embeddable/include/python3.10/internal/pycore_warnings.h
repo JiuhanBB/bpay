@@ -1,25 +1,3 @@
-#ifndef Py_INTERNAL_WARNINGS_H
-#define Py_INTERNAL_WARNINGS_H
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
-#endif
-
-struct _warnings_runtime_state {
-    /* Both 'filters' and 'onceregistry' can be set in warnings.py;
-       get_warnings_attr() will reset these variables accordingly. */
-    PyObject *filters;  /* List */
-    PyObject *once_registry;  /* Dict */
-    PyObject *default_action; /* String */
-    long filters_version;
-};
-
-extern int _PyWarnings_InitState(PyInterpreterState *interp);
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* !Py_INTERNAL_WARNINGS_H */
+version https://git-lfs.github.com/spec/v1
+oid sha256:bb97717b23047f5788708aef722b3c8f761a8ff191a5147681dac18ef6604595
+size 633

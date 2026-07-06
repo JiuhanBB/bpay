@@ -1,13 +1,3 @@
-The IDLE icons are from https://bugs.python.org/issue1490384
-
-Created by Andrew Clover.
-
-The original sources are available from Andrew's website:
-https://www.doxdesk.com/software/py/pyicons.html
-
-Various different formats and sizes are available at this GitHub Pull Request:
-https://github.com/python/cpython/pull/17473
-
-The idle.ico file was created with ImageMagick:
-
-    $ convert idle_16.png idle_32.png idle_48.png idle_256.png idle.ico
+version https://git-lfs.github.com/spec/v1
+oid sha256:60399d6129e3e486ce6b437bbf614ff4838bd4e7f42d461c3e5467cf3b4fa272
+size 443

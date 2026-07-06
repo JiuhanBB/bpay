@@ -1,13 +1,3 @@
-# 简中 PP-OCR v3
-
-# det 检测模型库
-det_model_dir models/ch_PP-OCRv3_det_infer
-
-# cls 方向分类器库
-cls_model_dir models/ch_ppocr_mobile_v2.0_cls_infer
-
-# rec 识别模型库
-rec_model_dir models/ch_PP-OCRv3_rec_infer
-
-# 字典路径
-rec_char_dict_path models/dict_chinese.txt
+version https://git-lfs.github.com/spec/v1
+oid sha256:617c9189d4af9433714a3973f73ca2473c15ef1dc368068bf15b36a95463884d
+size 299

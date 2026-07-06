@@ -1,12 +1,3 @@
-from __future__ import absolute_import, division, unicode_literals
-
-
-class Filter(object):
-    def __init__(self, source):
-        self.source = source
-
-    def __iter__(self):
-        return iter(self.source)
-
-    def __getattr__(self, name):
-        return getattr(self.source, name)
+version https://git-lfs.github.com/spec/v1
+oid sha256:cfe214f590188e9b15b2a995b7b92e582eb78d1d7584332be8256bbee6a8f16d
+size 286

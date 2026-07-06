@@ -1,10 +1,3 @@
-#ifndef Py_INTERNAL_HASH_H
-#define Py_INTERNAL_HASH_H
-
-#ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
-#endif
-
-uint64_t _Py_KeyedHash(uint64_t, const char *, Py_ssize_t);
-
-#endif
+version https://git-lfs.github.com/spec/v1
+oid sha256:6e9db9d3e7d7245b10e33598b995fc9b51b3952ce17225830d0248c6fa62dd51
+size 206

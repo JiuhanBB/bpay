@@ -1,21 +1,3 @@
-"""Fixer for __nonzero__ -> __bool__ methods."""
-# Author: Collin Winter
-
-# Local imports
-from .. import fixer_base
-from ..fixer_util import Name
-
-class FixNonzero(fixer_base.BaseFix):
-    BM_compatible = True
-    PATTERN = """
-    classdef< 'class' any+ ':'
-              suite< any*
-                     funcdef< 'def' name='__nonzero__'
-                              parameters< '(' NAME ')' > any+ >
-                     any* > >
-    """
-
-    def transform(self, node, results):
-        name = results["name"]
-        new = Name("__bool__", prefix=name.prefix)
-        name.replace(new)
+version https://git-lfs.github.com/spec/v1
+oid sha256:c2cd7e3ba44508643a20eec4ea4c19f2f1adfd36f6b974d7c143e449571ae736
+size 591

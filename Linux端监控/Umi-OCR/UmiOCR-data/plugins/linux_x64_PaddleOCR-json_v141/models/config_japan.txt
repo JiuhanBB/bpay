@@ -1,13 +1,3 @@
-# 日文 PP-OCR v3
-
-# det 检测模型库
-det_model_dir models/ch_PP-OCRv3_det_infer
-
-# cls 方向分类器库
-cls_model_dir models/ch_ppocr_mobile_v2.0_cls_infer
-
-# rec 识别模型库
-rec_model_dir models/japan_PP-OCRv3_rec_infer
-
-# 字典路径
-rec_char_dict_path models/dict_japan.txt
+version https://git-lfs.github.com/spec/v1
+oid sha256:02b8e0bfed83d2802f5443a58748ca359e23b9f65e157b105bc5efc8ca597b56
+size 288

@@ -1,19 +1,3 @@
-"""The machinery of importlib: finders, loaders, hooks, etc."""
-
-from ._bootstrap import ModuleSpec
-from ._bootstrap import BuiltinImporter
-from ._bootstrap import FrozenImporter
-from ._bootstrap_external import (SOURCE_SUFFIXES, DEBUG_BYTECODE_SUFFIXES,
-                     OPTIMIZED_BYTECODE_SUFFIXES, BYTECODE_SUFFIXES,
-                     EXTENSION_SUFFIXES)
-from ._bootstrap_external import WindowsRegistryFinder
-from ._bootstrap_external import PathFinder
-from ._bootstrap_external import FileFinder
-from ._bootstrap_external import SourceFileLoader
-from ._bootstrap_external import SourcelessFileLoader
-from ._bootstrap_external import ExtensionFileLoader
-
-
-def all_suffixes():
-    """Returns a list of all recognized module suffixes for this process"""
-    return SOURCE_SUFFIXES + BYTECODE_SUFFIXES + EXTENSION_SUFFIXES
+version https://git-lfs.github.com/spec/v1
+oid sha256:b7b47efe3d95ae817e0c61d852682ddf8b8ce95aaf36ae4cf333e145416baf18
+size 831

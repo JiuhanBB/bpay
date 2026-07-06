@@ -1,17 +1,3 @@
-#ifndef Py_ENUMOBJECT_H
-#define Py_ENUMOBJECT_H
-
-/* Enumerate Object */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-PyAPI_DATA(PyTypeObject) PyEnum_Type;
-PyAPI_DATA(PyTypeObject) PyReversed_Type;
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* !Py_ENUMOBJECT_H */
+version https://git-lfs.github.com/spec/v1
+oid sha256:2244fe250db9995068fe74dce0e23fd70c12b03fd94751d98b773be8f64896b6
+size 253

@@ -1,8 +1,3 @@
-#!/home/my/MyCode/Umi-OCR_Project/Umi-OCR/UmiOCR-data/.embeddable/bin/python3
-# -*- coding: utf-8 -*-
-import re
-import sys
-from fontTools.merge import main
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(main())
+version https://git-lfs.github.com/spec/v1
+oid sha256:6c4bc5399bc67225c255bd7efa5bbfee9d386a8dbfe501d1946b9527d18c670d
+size 273
