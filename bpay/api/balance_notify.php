@@ -56,7 +56,24 @@ if ($changeAmount === '' || !is_numeric($changeAmount)) {
 }
 
 $amount = round((float) $changeAmount, 2);
-$order = findOrderByAmount($db, $amount, $logger);
+
+// 优先使用 trade_no 直匹配（监控端已按金额匹配好具体订单）
+$tradeNo = $data['trade_no'] ?? '';
+if ($tradeNo !== '') {
+    $order = $db->getOrderByTradeNo($tradeNo);
+    if ($order && (int)$order['status'] !== 0) {
+        $logger->logIncoming('balance_notify', $requestData, [
+            'error' => '订单状态不是待支付状态',
+            'trade_no' => $tradeNo,
+            'status' => $order['status'],
+            'code' => 'error',
+        ], ['step' => 'trade_no_match']);
+        echo json_encode(['code' => 'error', 'msg' => '订单状态不正确', 'trade_no' => $tradeNo]);
+        exit;
+    }
+} else {
+    $order = findOrderByAmount($db, $amount, $logger);
+}
 
 if (!$order) {
     $allOrders = $db->getOrderList(10);

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BPay Linux 支付监控系统</title>
+<style>
+/* ========== 暗色主题零依赖 ========== */
+*, *::before, *::after { box-sizing: border-box; }
+:root { color-scheme: dark; }
+html { height: 100%; }
+body {
+  margin: 0; min-height: 100%;
+  background: #12151c; color: #e0e0e0;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;
+  font-size: .875rem; line-height: 1.5;
+}
+
+/* ========== Grid ========== */
+.container-fluid { max-width: 100%; padding: 1rem .75rem; margin: 0 auto; }
+.row { display: flex; flex-wrap: wrap; margin: 0 -.375rem; }
+.row > * { padding: 0 .375rem; margin-bottom: .75rem; }
+.col-12 { flex: 0 0 100%; max-width: 100%; }
+.col-6 { flex: 0 0 50%; max-width: 50%; }
+@media (min-width: 992px) {
+  .col-lg-4 { flex: 0 0 33.33333%; max-width: 33.33333%; }
+  .col-lg-8 { flex: 0 0 66.66667%; max-width: 66.66667%; }
+}
+.g-2 > * { margin-bottom: .5rem; }
+.g-3 > * { margin-bottom: 1rem; }
+
+/* ========== Spacing ========== */
+.mb-0 { margin-bottom: 0 !important; }
+.mb-2 { margin-bottom: .5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mt-1 { margin-top: .25rem !important; }
+.me-1 { margin-right: .25rem !important; }
+.me-2 { margin-right: .5rem !important; }
+.ms-1 { margin-left: .25rem !important; }
+.ms-2 { margin-left: .5rem !important; }
+.m-3 { margin: 1rem !important; }
+.py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+.py-1 { padding-top: .25rem !important; padding-bottom: .25rem !important; }
+.py-2 { padding-top: .5rem !important; padding-bottom: .5rem !important; }
+.py-3 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+.py-5 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+.p-2 { padding: .5rem !important; }
+.px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+
+/* ========== Display/Flex ========== */
+.d-none { display: none !important; }
+.d-flex { display: flex !important; }
+.justify-content-between { justify-content: space-between !important; }
+.align-items-center { align-items: center !important; }
+.text-center { text-align: center !important; }
+.w-100 { width: 100% !important; }
+
+/* ========== Colors ========== */
+.text-secondary { color: #adb5bd !important; }
+.text-success { color: #75b798 !important; }
+.text-danger { color: #ea868f !important; }
+.text-warning { color: #ffca2c !important; }
+.text-info { color: #6ea8fe !important; }
+.text-bg-primary { background: #0d6efd !important; color: #fff !important; }
+
+/* ========== Card ========== */
+.card { background: #1e2128; border: 1px solid #2d323a; border-radius: .375rem; }
+.card + .card { margin-top: .75rem; }
+.card-header {
+  background: #262a33; border-bottom: 1px solid #333841;
+  padding: .5rem .75rem; font-weight: 600; color: #e8e8e8;
+  border-radius: calc(.375rem - 1px) calc(.375rem - 1px) 0 0;
+}
+.card-body { padding: .75rem; }
+.card-header-tabs { margin-bottom: -.5rem; }
+
+/* ========== Form ========== */
+.form-label { display: block; margin-bottom: .25rem; color: #c8c8c8; }
+.form-control, .form-select {
+  display: block; width: 100%; padding: .25rem .5rem;
+  background: #262a33; border: 1px solid #3a3f48;
+  color: #e0e0e0; border-radius: .25rem;
+  font-size: .8125rem; line-height: 1.5;
+}
+.form-control:focus, .form-select:focus {
+  background: #262a33; border-color: #0d6efd; color: #e0e0e0;
+  outline: 0; box-shadow: 0 0 0 .15rem rgba(13,110,253,.25);
+}
+.form-control::placeholder { color: #6c757d; }
+.form-control-sm, .form-select-sm { padding: .2rem .4rem; font-size: .8125rem; }
+select.form-select { appearance: auto; }
+textarea.form-control { resize: vertical; }
+
+/* ========== Button ========== */
+.btn {
+  display: inline-block; padding: .3rem .6rem; font-size: .8125rem;
+  font-weight: 500; line-height: 1.5; text-align: center;
+  vertical-align: middle; cursor: pointer; border: none;
+  border-radius: .25rem; user-select: none;
+}
+.btn-sm { padding: .2rem .4rem; font-size: .75rem; }
+.btn-primary { background: #0d6efd; color: #fff; }
+.btn-success { background: #198754; color: #fff; }
+.btn-danger { background: #dc3545; color: #fff; }
+.btn-warning { background: #ffc107; color: #000; }
+.btn-outline-secondary {
+  background: transparent; border: 1px solid #495057; color: #adb5bd;
+}
+.btn-outline-secondary:hover { background: #495057; color: #fff; }
+
+/* ========== Nav/Tabs ========== */
+.nav { display: flex; flex-wrap: wrap; padding: 0; margin: 0; list-style: none; }
+.nav-tabs { border-bottom: 1px solid #333841; }
+.nav-item { margin-bottom: -1px; }
+.nav-link {
+  display: block; padding: .35rem .75rem; cursor: pointer;
+  color: #adb5bd; background: none; border: none; font-size: .8125rem;
+  white-space: nowrap;
+}
+.nav-link:hover { color: #fff; }
+.nav-link.active { color: #fff; border-bottom: 2px solid #0d6efd; }
+.nav-fill .nav-item { flex: 1 1 auto; text-align: center; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ========== Typography ========== */
+h1, h2, h3, h4, h5, h6 { color: #f0f0f0; margin-top: 0; margin-bottom: .5rem; font-weight: 600; }
+h4 { font-size: 1.125rem; }
+small, .small { font-size: .8125rem; color: #adb5bd; }
+a { color: #6ea8fe; text-decoration: none; }
+a:hover { color: #8bb9fe; text-decoration: underline; }
+b, strong { color: #e8e8e8; }
+hr { border: 0; border-top: 1px solid #333841; margin: .5rem 0; }
+p { margin-top: 0; margin-bottom: .5rem; }
+
+/* ========== Log Box ========== */
+#log-box {
+  height: 300px; overflow-y: auto;
+  font-family: 'Cascadia Code','Fira Code',Consolas,monospace;
+  font-size: .8125rem; background: #11141a; border-radius: .375rem;
+  padding: .75rem; color: #adb5bd;
+}
+.log-entry { padding: 2px 0; border-bottom: 1px solid #1a1e26; }
+.log-time { color: #6c757d; margin-right: .5rem; }
+.log-info { color: #adb5bd; }
+.log-success { color: #75b798; }
+.log-warn { color: #ffca2c; }
+.log-error { color: #ea868f; }
+
+/* ========== Status ========== */
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.status-running { background: #198754; box-shadow: 0 0 6px #198754; }
+.status-green { background: #198754; }
+.status-stopped { background: #6c757d; }
+
+/* ========== Log Panels ========== */
+#success-log, #fail-log {
+  height: 150px; overflow-y: auto;
+  font-family: monospace; font-size: .8125rem;
+  background: #11141a; border-radius: .375rem; padding: .75rem; color: #adb5bd;
+}
+#screenshot-img { max-width: 100%; max-height: 400px; border-radius: .375rem; }
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed; bottom: 1rem; right: 1rem; z-index: 9999;
+  padding: .5rem 1rem; border-radius: .25rem; font-size: .8125rem;
+  box-shadow: 0 .25rem .5rem rgba(0,0,0,.3);
+}
+
+/* ========== Status title ========== */
+#wechat-status, #alipay-status { margin-left: .25rem; }
+</style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <h4 class="mb-0">BPay Linux 支付监控系统</h4>
+
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Left Column: Config -->
+    <div class="col-12 col-lg-4">
+      <!-- OCR Config -->
+      <div class="card">
+        <div class="card-header py-2">OCR 设置</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label small">OCR 方法</label>
+            <select id="ocr_method" class="form-select form-select-sm">
+              <option value="百度OCR">百度OCR</option>
+              <option value="自定义API">自定义API</option>
+              <option value="本地OCR">本地OCR</option>
+            </select>
+          </div>
+          <div id="baidu_fields">
+            <div class="mb-2">
+              <label class="form-label small">API Key</label>
+              <input id="baidu_api_key" class="form-control form-control-sm" placeholder="百度OCR API Key">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Secret Key</label>
+              <input id="baidu_secret_key" class="form-control form-control-sm" placeholder="百度OCR Secret Key">
+            </div>
+          </div>
+          <div id="custom_fields" class="d-none">
+            <div class="mb-2">
+              <label class="form-label small">API URL</label>
+              <input id="custom_api_url" class="form-control form-control-sm" placeholder="http://127.0.0.1:1224/api/ocr">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WeChat Config -->
+      <div class="card">
+        <div class="card-header py-2">微信设置</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label small">支付类型</label>
+            <select id="wechat_type" class="form-select form-select-sm">
+              <option value="收款助手">收款码 (微信收款助手)</option>
+              <option value="赞赏码">赞赏码 (微信支付)</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">检测间隔 (秒)</label>
+            <input id="timer_interval" class="form-control form-control-sm" type="number" value="10">
+          </div>
+          <hr>
+          <div class="mb-2">
+            <label class="form-label small">微信状态</label>
+            <div id="wechat-process-status" class="text-secondary mb-2" style="font-size:.9rem">检测中...</div>
+          </div>
+          <div class="mb-2 d-flex gap-1" style="gap:4px">
+            <button class="btn btn-success btn-sm" onclick="startWechatProcess()">启动微信</button>
+            <button class="btn btn-danger btn-sm" onclick="stopWechatProcess()">关闭微信</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="checkWechatStatus()">检测状态</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="showWechatWindow()">窗口截图</button>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">支付窗口</label>
+            <div class="d-flex gap-1" style="gap:4px">
+              <select id="wechat_window_select" class="form-select form-select-sm" style="flex:1">
+                <option value="">-- 选择窗口 --</option>
+              </select>
+              <button class="btn btn-outline-secondary btn-sm" onclick="refreshWindows()">刷新</button>
+            </div>
+            <div id="payment-window-name" class="small mt-1 text-info" style="word-break:break-all"></div>
+          </div>
+          <button class="btn btn-info btn-sm w-100 mt-2" onclick="openServiceAccount(this)">
+            自动打开服务号
+          </button>
+        </div>
+      </div>
+
+      <!-- Alipay Config -->
+      <div class="card">
+        <div class="card-header py-2">支付宝设置</div>
+        <div class="card-body">
+          <div class="nav nav-tabs nav-fill mb-2">
+            <button class="nav-link active small" data-tab="cookie">Cookie</button>
+            <button class="nav-link small" data-tab="app">商家API</button>
+          </div>
+          <div class="tab-pane active" id="alipay-cookie-tab">
+            <div class="mb-2">
+              <label class="form-label small">Cookie (ctoken)</label>
+              <input id="alipay_ctoken" class="form-control form-control-sm" placeholder="ctoken">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Cookie (userid)</label>
+              <input id="alipay_userid" class="form-control form-control-sm" placeholder="billUserId">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">完整 Cookie</label>
+              <textarea id="alipay_cookie" class="form-control form-control-sm" rows="2" placeholder="完整Cookie字符串，自动提取参数"></textarea>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">监听间隔 (秒)</label>
+              <input id="alipay_interval" class="form-control form-control-sm" type="number" value="5">
+            </div>
+          </div>
+          <div class="tab-pane" id="alipay-app-tab">
+            <div class="mb-2">
+              <label class="form-label small">应用ID</label>
+              <input id="alipay_app_id" class="form-control form-control-sm" placeholder="应用ID">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">应用私钥</label>
+              <textarea id="alipay_private_key" class="form-control form-control-sm" rows="2" placeholder="RSA私钥"></textarea>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">监听间隔 (秒)</label>
+              <input id="alipay_app_interval" class="form-control form-control-sm" type="number" value="5">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification Config -->
+      <div class="card">
+        <div class="card-header py-2">通知设置</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label small">支付网关域名</label>
+            <input id="payment_gateway" class="form-control form-control-sm" placeholder="https://你的域名.com/">
+          </div>
+          <button class="btn btn-primary btn-sm w-100 mt-1" onclick="saveConfig()">保存配置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Monitor Dashboard -->
+    <div class="col-12 col-lg-8">
+      <!-- Status Cards -->
+      <div class="row g-2">
+        <div class="col-6">
+          <div class="card">
+            <div class="card-body py-2 d-flex justify-content-between align-items-center">
+              <div>
+                <span class="status-dot" id="wechat-dot"></span>
+                <span>微信监控</span>
+                <small class="text-secondary" id="wechat-status" style="margin-left:4px">未启动</small>
+              </div>
+              <div>
+                <button class="btn btn-success btn-sm me-1" onclick="startWechat()">&#9654;</button>
+                <button class="btn btn-danger btn-sm" onclick="stopWechat()">&#9632;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card">
+            <div class="card-body py-2 d-flex justify-content-between align-items-center">
+              <div>
+                <span class="status-dot" id="alipay-dot"></span>
+                <span>支付宝监控</span>
+                <small class="text-secondary" id="alipay-status" style="margin-left:4px">未启动</small>
+              </div>
+              <div>
+                <button class="btn btn-success btn-sm me-1" onclick="startAlipay()">&#9654;</button>
+                <button class="btn btn-danger btn-sm" onclick="stopAlipay()">&#9632;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Orders Card -->
+      <div class="card" style="margin-top:.75rem">
+        <div class="card-body py-2 d-flex justify-content-between align-items-center" style="background:#1a1f2e">
+          <div>
+            <span class="status-dot" id="order-dot"></span>
+            <span style="font-weight:600">活跃订单</span>
+            <small class="text-secondary ms-2" id="order-count-badge" style="display:none"><span id="order-count">0</span> 个待支付</small>
+          </div>
+          <div>
+            <button class="btn btn-outline-secondary btn-sm" onclick="refreshOrderStatus()" title="刷新">&#x21bb;</button>
+          </div>
+        </div>
+        <div class="card-body p-2" id="order-detail" style="display:none; background:#0d1117">
+          <div id="order-list" class="small"></div>
+        </div>
+      </div>
+
+      <!-- Real-time Logs -->
+      <div class="card" style="margin-top:.75rem">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+          <span>实时日志</span>
+          <small class="text-secondary" id="log-time"></small>
+        </div>
+        <div class="card-body p-2">
+          <div id="log-box"></div>
+        </div>
+      </div>
+
+      <!-- Tabs: Screenshot / History -->
+      <div class="card" style="margin-top:.75rem">
+        <div class="card-header py-2">
+          <div class="nav nav-tabs nav-fill">
+            <button class="nav-link active small" data-tab="screenshot">桌面截图</button>
+            <button class="nav-link small" data-tab="wechat-window">微信窗口</button>
+            <button class="nav-link small" data-tab="history">支付记录</button>
+            <button class="nav-link small" data-tab="ocr-test">测试识别</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="tab-pane active" id="tab-screenshot">
+            <div class="text-center">
+              <img id="screenshot-img" src="" style="display:none">
+              <div id="screenshot-placeholder" class="text-secondary py-5">暂无截图，点击刷新 <span style="cursor:pointer" onclick="refreshScreenshot()">&#x21bb;</span></div>
+            </div>
+          </div>
+          <div class="tab-pane text-center" id="tab-wechat-window">
+            <img id="wechat-window-img" src="" style="display:none;max-width:100%;max-height:450px;border-radius:.375rem">
+            <div id="wechat-window-placeholder" class="text-secondary py-5">暂无聊天窗口截图</div>
+          </div>
+          <div class="tab-pane" id="tab-history">
+            <div class="d-flex justify-content-between mb-2">
+              <small class="text-secondary">最近支付记录</small>
+              <button class="btn btn-outline-secondary btn-sm py-0" onclick="clearHistory()">清空</button>
+            </div>
+            <div id="history-box"><small class="text-secondary">暂无记录</small></div>
+          </div>
+          <div class="tab-pane" id="tab-ocr-test">
+            <p class="small text-secondary mb-2">点击测试按钮进行单次截图+OCR识别，查看识别结果</p>
+            <button class="btn btn-warning btn-sm mb-2" onclick="testOcr()">测试识别</button>
+            <div id="test-result" class="small"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Logs -->
+      <div class="row g-2" style="margin-top:.75rem">
+        <div class="col-6">
+          <div class="card">
+            <div class="card-header py-2 text-success">成功记录</div>
+            <div class="card-body p-2">
+              <div id="success-log"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card">
+            <div class="card-header py-2 text-danger">失败记录</div>
+            <div class="card-body p-2">
+              <div id="fail-log"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const cfg = {};
+
+/* Tab switching (vanilla, no Bootstrap JS) */
+function initTabs() {
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabName = this.getAttribute('data-tab');
+      const parent = this.closest('.nav');
+      parent.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      // tab-{name} for preview tabs, alipay-{name}-tab for alipay tabs
+      let target = document.getElementById('tab-' + tabName) || document.getElementById('alipay-' + tabName + '-tab');
+      if (target) {
+        // find parent tab container
+        const tabContainer = target.closest('.card-body') || target.parentElement;
+        tabContainer.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        target.classList.add('active');
+      }
+    });
+  });
+}
+
+function extractFromCookie() {
+  const cookie = document.getElementById('alipay_cookie').value;
+  if (!cookie) return;
+  cookie.split(';').forEach(p => {
+    const [k, v] = p.trim().split('=', 2);
+    if (k === 'ctoken') document.getElementById('alipay_ctoken').value = v || '';
+    if (k === 'CLUB_ALIPAY_COM') document.getElementById('alipay_userid').value = v || '';
+  });
+}
+
+document.getElementById('alipay_cookie').addEventListener('keyup', extractFromCookie);
+document.getElementById('alipay_cookie').addEventListener('blur', extractFromCookie);
+
+document.getElementById('ocr_method').addEventListener('change', function() {
+  document.getElementById('baidu_fields').classList.toggle('d-none', this.value !== '百度OCR');
+  document.getElementById('custom_fields').classList.toggle('d-none', this.value !== '自定义API');
+});
+
+async function loadConfig() {
+  const r = await fetch('/api/config');
+  const c = await r.json();
+  Object.assign(cfg, c);
+  document.getElementById('ocr_method').value = c.ocr_method || '百度OCR';
+  document.getElementById('baidu_api_key').value = c.baidu_api_key || '';
+  document.getElementById('baidu_secret_key').value = c.baidu_secret_key || '';
+  document.getElementById('custom_api_url').value = c.custom_api_url || '';
+  document.getElementById('wechat_type').value = c.wechat_type || '收款助手';
+  document.getElementById('timer_interval').value = c.timer_interval || '10';
+  document.getElementById('alipay_ctoken').value = c.alipay_ctoken || '';
+  document.getElementById('alipay_userid').value = c.alipay_userid || '';
+  document.getElementById('alipay_cookie').value = c.alipay_cookie || '';
+  document.getElementById('alipay_interval').value = c.alipay_interval || '5';
+  document.getElementById('alipay_app_id').value = c.alipay_app_id || '';
+  document.getElementById('alipay_private_key').value = c.alipay_private_key || '';
+  document.getElementById('alipay_app_interval').value = c.alipay_app_interval || '5';
+  document.getElementById('payment_gateway').value = c.payment_gateway || '';
+  document.getElementById('ocr_method').dispatchEvent(new Event('change'));
+}
+
+async function saveConfig() {
+  const c = {
+    ocr_method: document.getElementById('ocr_method').value,
+    baidu_api_key: document.getElementById('baidu_api_key').value,
+    baidu_secret_key: document.getElementById('baidu_secret_key').value,
+    custom_api_url: document.getElementById('custom_api_url').value,
+    wechat_type: document.getElementById('wechat_type').value,
+    timer_interval: document.getElementById('timer_interval').value,
+    alipay_ctoken: document.getElementById('alipay_ctoken').value,
+    alipay_userid: document.getElementById('alipay_userid').value,
+    alipay_cookie: document.getElementById('alipay_cookie').value,
+    alipay_interval: document.getElementById('alipay_interval').value,
+    alipay_app_id: document.getElementById('alipay_app_id').value,
+    alipay_private_key: document.getElementById('alipay_private_key').value,
+    alipay_app_interval: document.getElementById('alipay_app_interval').value,
+    payment_gateway: document.getElementById('payment_gateway').value,
+  };
+  await fetch('/api/config', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(c) });
+  showToast('配置已保存');
+}
+
+async function startWechat() {
+  await fetch('/api/wechat/start', { method: 'POST' });
+}
+
+async function stopWechat() {
+  await fetch('/api/wechat/stop', { method: 'POST' });
+}
+
+async function startAlipay() {
+  const activeTab = document.querySelector('.card-body .nav-tabs .active');
+  const mode = activeTab && activeTab.getAttribute('data-tab') === 'app' ? 'app' : 'cookie';
+  await fetch('/api/alipay/start', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({mode}) });
+}
+
+async function stopAlipay() {
+  await fetch('/api/alipay/stop', { method: 'POST' });
+}
+
+async function refreshScreenshot() {
+  const img = document.getElementById('screenshot-img');
+  const placeholder = document.getElementById('screenshot-placeholder');
+  img.src = '/api/screenshot?t=' + Date.now();
+  img.style.display = 'block';
+  placeholder.style.display = 'none';
+}
+
+async function testOcr() {
+  const div = document.getElementById('test-result');
+  div.innerHTML = '<span class="text-info">识别中...</span>';
+  const r = await fetch('/api/wechat/test', { method: 'POST' });
+  const d = await r.json();
+  if (d.error) { div.innerHTML = '<span class="text-danger">' + d.error + '</span>'; return; }
+  let html = '<b>OCR识别文本:</b><br>';
+  (d.ocr_text || []).forEach(t => { html += '<span class="text-secondary">' + t + '</span><br>'; });
+  if (d.payment_info) {
+    html += '<br><b class="text-success">支付信息:</b><br>';
+    Object.entries(d.payment_info).forEach(([k,v]) => { html += k + ': ' + v + '<br>'; });
+  } else {
+    html += '<br><span class="text-warning">未能提取支付信息</span>';
+  }
+  div.innerHTML = html;
+}
+
+async function clearHistory() {
+  await fetch('/api/clear_history', { method: 'POST' });
+  document.getElementById('history-box').innerHTML = '<small class="text-secondary">已清空</small>';
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const d = document.createElement('div');
+  d.className = 'toast text-bg-primary';
+  d.textContent = msg;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 2000);
+}
+
+// SSE logs
+function connectLogs() {
+  const es = new EventSource('/api/logs');
+  es.onmessage = e => {
+    const entry = JSON.parse(e.data);
+    const box = document.getElementById('log-box');
+    const line = document.createElement('div');
+    line.className = 'log-entry';
+    line.innerHTML = '<span class="log-time">' + entry.time + '</span><span class="log-' + entry.level + '">' + entry.msg + '</span>';
+    box.appendChild(line);
+    box.scrollTop = box.scrollHeight;
+    document.getElementById('log-time').textContent = entry.time;
+  };
+  es.onerror = () => setTimeout(connectLogs, 3000);
+}
+
+// Poll status
+async function pollStatus() {
+  try {
+    const r = await fetch('/api/status');
+    const s = await r.json();
+    // 微信：扫描中→绿色脉冲，已启用→绿点，已停用→灰点
+    var wdot = 'status-stopped';
+    if (s.wechat_scanning) wdot = 'status-running';
+    else if (s.wechat_enabled) wdot = 'status-green';
+    document.getElementById('wechat-dot').className = 'status-dot ' + wdot;
+    // 支付宝同理
+    var adot = 'status-stopped';
+    if (s.alipay_scanning) adot = 'status-running';
+    else if (s.alipay_enabled) adot = 'status-green';
+    document.getElementById('alipay-dot').className = 'status-dot ' + adot;
+    document.getElementById('wechat-status').textContent = s.wechat_status;
+    document.getElementById('alipay-status').textContent = s.alipay_status;
+    if (s.payment_window) {
+      document.getElementById('payment-window-name').textContent = s.payment_window.name + ' (' + s.payment_window.wid + ')';
+    }
+    // 更新活跃订单
+    if (s.order_polling || s.active_orders > 0) refreshOrderStatus();
+  } catch(e) {}
+  setTimeout(pollStatus, 2000);
+}
+
+// Poll history
+async function pollHistory() {
+  try {
+    const r = await fetch('/api/history');
+    const h = await r.json();
+    const box = document.getElementById('history-box');
+    const items = [].concat(h.wechat || []).concat(h.alipay || []);
+    if (items.length === 0) { box.innerHTML = '<small class="text-secondary">暂无记录</small>'; return; }
+    box.innerHTML = items.slice(-20).reverse().map(i => '<div class="small text-secondary py-1 border-bottom" style="border-color:#333841">' + i + '</div>').join('');
+  } catch(e) {}
+  setTimeout(pollHistory, 5000);
+}
+
+async function startWechatProcess() {
+  const r = await fetch('/api/wechat/process/start', { method: 'POST' });
+  const d = await r.json();
+  if (d.error) { showToast(d.error); return; }
+  showToast('微信已启动，请在 VNC 中扫码登录');
+  setTimeout(checkWechatStatus, 3000);
+}
+
+async function stopWechatProcess() {
+  if (!confirm('确定关闭微信？')) return;
+  const r = await fetch('/api/wechat/process/stop', { method: 'POST' });
+  showToast('微信已关闭');
+  setTimeout(checkWechatStatus, 1000);
+}
+
+async function checkWechatStatus() {
+  const r = await fetch('/api/wechat/process/status');
+  const s = await r.json();
+  const el = document.getElementById('wechat-process-status');
+  if (s.status === 'not_running') {
+    el.innerHTML = '<span class="text-secondary">⏹ 未启动</span>';
+  } else if (s.status === 'login_screen') {
+    el.innerHTML = '<span class="text-warning">◌ 登录界面（等待扫码）</span>';
+    showWechatLoginWindow(s.login_window);
+  } else if (s.status === 'logged_in') {
+    el.innerHTML = '<span class="text-success">● 已登录</span>';
+  } else {
+    el.innerHTML = '<span class="text-info">● ' + s.message + '</span>';
+  }
+}
+
+async function showWechatLoginWindow(win) {
+  if (!win) return;
+  const r = await fetch('/api/wechat/window/screenshot', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({wid: win.id})
+  });
+  if (!r.ok) return;
+  const blob = await r.blob();
+  const url = URL.createObjectURL(blob);
+  const img = document.getElementById('wechat-window-img');
+  img.src = url;
+  img.style.display = 'block';
+  document.getElementById('wechat-window-placeholder').style.display = 'none';
+  // switch to wechat window tab
+  const tabs = document.querySelectorAll('[data-tab]');
+  tabs.forEach(t => { if (t.getAttribute('data-tab') === 'wechat-window') t.click(); });
+}
+
+async function showWechatWindow() {
+  const r = await fetch('/api/wechat/process/status');
+  const s = await r.json();
+  if (s.windows && s.windows.length > 0) {
+    showWechatLoginWindow(s.windows[0]);
+  } else if (s.login_window) {
+    showWechatLoginWindow(s.login_window);
+  } else {
+    showToast('未找到微信窗口');
+  }
+}
+
+async function refreshWindows() {
+  const sel = document.getElementById('wechat_window_select');
+  sel.innerHTML = '<option value="">-- 选择窗口 --</option>';
+  try {
+    const r = await fetch('/api/wechat/windows');
+    const wins = await r.json();
+    wins.forEach(w => {
+      const opt = document.createElement('option');
+      opt.value = w.id;
+      opt.textContent = w.name + ' (' + w.width + 'x' + w.height + ')';
+      sel.appendChild(opt);
+    });
+  } catch(e) { showToast('获取窗口列表失败'); }
+}
+
+async function startWechatDetect() {
+  const r = await fetch('/api/wechat/login/detect', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({action:'start'}) });
+  const d = await r.json();
+  if (d.error) { showToast(d.error); return; }
+  showToast('已开始自动检测登录');
+}
+
+async function openServiceAccount(btn) {
+  const sel = document.getElementById('wechat_window_select');
+  const wid = sel.value;
+  if (!wid) { showToast('请先选择支付窗口'); return; }
+  const wechatType = document.getElementById('wechat_type').value;
+  btn.disabled = true; btn.textContent = '打开中...';
+  try {
+    const r = await fetch('/api/wechat/service/open', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({wid, service_type: wechatType})
+    });
+    const d = await r.json();
+    if (d.error) { showToast('失败: ' + d.error); return; }
+    showToast('已打开: ' + d.service);
+    if (d.window) {
+      const sel = document.getElementById('wechat_window_select');
+      sel.value = d.window.id;
+      document.getElementById('payment-window-name').textContent = d.window.name + ' (' + d.window.id + ')';
+    }
+  } catch(e) { showToast('请求失败'); }
+  finally { btn.disabled = false; btn.textContent = '自动打开服务号'; }
+}
+
+// ═══════════════════════════ 订单驱动监控(自动) ═══════════════════════════
+
+async function refreshOrderStatus() {
+  const r = await fetch('/api/orders/status');
+  const d = await r.json();
+  updateOrderUI(d);
+}
+
+function updateOrderUI(data) {
+  if (!data) return;
+  const dot = document.getElementById('order-dot');
+  const badge = document.getElementById('order-count-badge');
+  const detail = document.getElementById('order-detail');
+  const list = document.getElementById('order-list');
+
+  if (data.active_count > 0) {
+    dot.className = 'status-dot status-green';
+    badge.style.display = '';
+    document.getElementById('order-count').textContent = data.active_count;
+    detail.style.display = '';
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:.8rem">';
+    html += '<tr style="color:#888"><th style="text-align:left;padding:2px 4px">订单号</th><th style="padding:2px 4px">金额</th><th style="padding:2px 4px">类型</th><th style="padding:2px 4px">剩余</th><th style="padding:2px 4px">状态</th></tr>';
+    data.orders.forEach(function(o) {
+      const cls = o.matched ? 'text-success' : (o.remaining <= 60 ? 'text-danger' : 'text-info');
+      const st = o.matched ? '已支付' : (o.remaining + 's');
+      html += '<tr class="' + cls + '"><td style="padding:2px 4px;word-break:break-all">' + o.trade_no + '</td>' +
+        '<td style="padding:2px 4px;text-align:center">¥' + o.money + '</td>' +
+        '<td style="padding:2px 4px;text-align:center">' + (o.type === 'wxpay' ? '微信' : '支付宝') + '</td>' +
+        '<td style="padding:2px 4px;text-align:center">' + (o.matched ? '-' : o.remaining + 's') + '</td>' +
+        '<td style="padding:2px 4px;text-align:center">' + st + '</td></tr>';
+    });
+    html += '</table>';
+    list.innerHTML = html;
+  } else {
+    dot.className = 'status-dot';
+    badge.style.display = 'none';
+    detail.style.display = 'none';
+  }
+}
+
+initTabs();
+loadConfig();
+connectLogs();
+pollStatus();
+pollHistory();
+// Initial WeChat status check
+setTimeout(checkWechatStatus, 2000);
+</script>
+</body>
+</html>

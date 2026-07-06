@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  bpay-monitor:
+    build: .
+    image: bpay-monitor
+    container_name: bpay-monitor
+    restart: unless-stopped
+    shm_size: 2g
+    ports:
+      - "6080:6080"   # noVNC (Web)
+      - "5901:5901"   # VNC
+      - "5000:5000"   # 监控 WebUI
+      - "1224:1224"   # Umi-OCR HTTP API

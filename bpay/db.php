@@ -312,6 +312,18 @@ class BPayDB {
     }
     
     /**
+     * 获取所有活跃的待支付订单（未超时、未支付）
+     */
+    public function getActivePendingOrders() {
+        $this->cancelExpiredOrders();
+        $stmt = $this->db->prepare("SELECT * FROM orders WHERE status = 0 AND create_time > :min_time ORDER BY create_time ASC");
+        $minTime = time() - 300;
+        $stmt->bindValue(':min_time', $minTime, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
      * 根据金额范围查找待支付订单（模糊匹配）
      */
     public function getPendingOrderByMoneyRange($minMoney, $maxMoney) {
