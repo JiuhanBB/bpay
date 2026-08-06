@@ -11,11 +11,8 @@ echo "=========================================="
 echo "  BPay Linux 支付监控 - Docker 构建脚本"
 echo "=========================================="
 
-# 检查 wechat.deb
-if [ ! -f wechat.deb ]; then
-    echo "错误: 未找到 wechat.deb，请将 WeChat Linux 安装包放在当前目录"
-    exit 1
-fi
+# 自动下载依赖 (微信安装包 + Umi-OCR)
+./download_deps.sh
 
 # 构建镜像
 echo ""
